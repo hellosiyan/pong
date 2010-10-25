@@ -6,7 +6,7 @@
 	<style type="text/css" media="screen">
 	html, body { background: black; text-align: center; color: #fff }
 	a { color: white; text-decoration: none }
-	canvas { border: 1px solid #4da612; border-left: 1px dotted #a61212; border-right: 1px dotted #a61212; cursor: crosshair }
+	canvas { border-top: 1px solid #4da612; border-bottom: 1px solid #4da612; cursor: crosshair }
 	</style>
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
@@ -45,6 +45,7 @@
 		n.addFrame(gameFrame);
 		
 		gameFrame.addListener('onEnterFrame', function(e) {
+			// Position bar_player
 			if(keys.up) bar_player.ny -= 10;
 			if(keys.down) bar_player.ny += 10;
 			if(bar_player.ny < 0) {
@@ -54,6 +55,7 @@
 			}
 			bar_player.y = bar_player.ny;
 		
+			// Position ball
 			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
 			
 			if ( ball.x + ball.accX + ball.width >= bar_player.x && ball.intersects(bar_player)) {
@@ -74,7 +76,6 @@
 				ball.x += ball.accX;
 			}
 			
-			
 			if ( ball.y + ball.width + ball.accY > e.canvas.stage.height ) {
 				ball.y -= ball.accY - (e.canvas.stage.height - ball.y - ball.height)
 				ball.accY *= -1
@@ -87,7 +88,7 @@
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
-			bar_player.ny = e.offsetY - bar_player.height/2
+			bar_player.ny = e.clientY - e.target.offsetTop - bar_player.height/2
 		}
 		
 		n.loop(50, function(){
