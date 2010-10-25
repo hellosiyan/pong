@@ -35,53 +35,54 @@
 		
 		var bar_player = new NRect({ny: n.stage.height/2 - 30});
 		bar_player.set({width: 13, height: 60, x: n.stage.width - 23, y: n.stage.height/2 - 30, fillColor: '#4da612', accX: 3, accY: 3});
-		bar_player.addListener('onEnterFrame', function(e) {
-			if(keys.up) this.ny -= 10;
-			if(keys.down) this.ny += 10;
-			if(this.ny < 0) {
-				this.ny = 0
-			} else if( this.ny + this.height > n.stage.height ) {
-				this.ny = n.stage.height - this.height
-			}
-			this.y = this.ny;
-		});
 		n.stage.addChild(bar_player);
 		
 		var ball = new NRect();
 		ball.set({fillColor: '#4da612', width: 10, height: 10, accX: -6, accY: 0, accMax: 6, x: n.stage.width/2, y: n.stage.height/2});
 		n.stage.addChild(ball);
 		
+		var gameFrame = new NFrame({name: 'game'});
+		n.addFrame(gameFrame);
 		
-		ball.addListener('onEnterFrame', function(e) {
-			var newPosition = {y: this.y + this.accY, x: this.x + this.accX, width: this.width, height: this.height};
+		gameFrame.addListener('onEnterFrame', function(e) {
+			if(keys.up) bar_player.ny -= 10;
+			if(keys.down) bar_player.ny += 10;
+			if(bar_player.ny < 0) {
+				bar_player.ny = 0
+			} else if( bar_player.ny + bar_player.height > n.stage.height ) {
+				bar_player.ny = n.stage.height - bar_player.height
+			}
+			bar_player.y = bar_player.ny;
+		
+			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
 			
-			if ( this.x + this.accX + this.width >= bar_player.x && this.intersects(bar_player)) {
+			if ( ball.x + ball.accX + ball.width >= bar_player.x && ball.intersects(bar_player)) {
 				var coeffY = (((bar_player.y + bar_player.height/2) - (newPosition.y + newPosition.height/2)) / (bar_player.height/2))*(Math.PI/4);
-				this.x = bar_player.x - this.width;
-				this.accY = -1*Math.sin(coeffY)*this.accMax;
-				this.accX = -1*Math.cos(coeffY)*this.accMax;
-				if( this.accMax < 14 ) {
-					this.accMax += 0.3;
+				ball.x = bar_player.x - ball.width;
+				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
+				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
+				if( ball.accMax < 14 ) {
+					ball.accMax += 0.3;
 				}
-				this.accMax += 0.3;
-			} else if(this.x > bar_player.x) {
+				ball.accMax += 0.3;
+			} else if(ball.x > bar_player.x) {
 				n.stop();
-			} else if(this.x <= 0) {
-				this.accX *= -1;
-				this.x = 1;
+			} else if(ball.x <= 0) {
+				ball.accX *= -1;
+				ball.x = 1;
 			} else {
-				this.x += this.accX;
+				ball.x += ball.accX;
 			}
 			
 			
-			if ( this.y + this.width + this.accY > e.canvas.stage.height ) {
-				this.y -= this.accY - (e.canvas.stage.height - this.y - this.height)
-				this.accY *= -1
-			} else if(this.y + this.accY < 0) {
-				this.y -= this.y + this.accY;
-				this.accY *= -1;
+			if ( ball.y + ball.width + ball.accY > e.canvas.stage.height ) {
+				ball.y -= ball.accY - (e.canvas.stage.height - ball.y - ball.height)
+				ball.accY *= -1
+			} else if(ball.y + ball.accY < 0) {
+				ball.y -= ball.y + ball.accY;
+				ball.accY *= -1;
 			} else {
-				this.y += this.accY;
+				ball.y += ball.accY;
 			}
 		});
 		

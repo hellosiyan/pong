@@ -1,3 +1,14 @@
+propertyCount = function(object) {
+	var count = 0;
+	
+	for (var key in object) {
+		if (object.hasOwnProperty(key)) {
+			count ++;
+		}
+	}
+	return count;
+}
+
 /* NObject */
 function NObject() {
 	this.set = function(data) {
@@ -180,20 +191,39 @@ function NContainer() {
 NContainer.prototype = new NRect();
 NContainer.prototype.constructor = NContainer;
 
+/* NFrame */
+function NFrame() {
+	this.name = '0';
+	NEventDispatcher.call(this, arguments[0]);
+}
+NFrame.prototype = new NEventDispatcher();
+NFrame.prototype.constructor = NFrame;
+
+
 /* NCanvas */
 function NCanvas() {
 	var interval = null;
 	this.fps = 60;
 	this.cb = function(){};
-	this.frame = 0;
+	this.frames = {};
+	this.currentFrame = '0';
 	this.stage = new NContainer();
 	this.node = null;
 	this.loop = function(fps, cb) {
 		this.fps = fps;
 		this.cb = cb;
+		
+		// Create frame if one doesn't already exist
+		if( propertyCount(this.frames) == 0 ) {
+			this.frames[this.currentFrame] = new NFrame({name: this.currentFrame});
+		}
+		
 		var _this = this;
+		
 		interval = setInterval(function(){
 			cb.call(_this);
+			
+			_this.frames[_this.currentFrame].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: _this}));
 			
 			for( child_index in _this.stage.children ) {
 				_this.stage.children[child_index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: _this}));
@@ -203,17 +233,29 @@ function NCanvas() {
 					_this.node.restore();
 				}
 			}
-			
-			_this.frame = (_this.frame+1)%fps;
 		}, 1000/fps);
 	};
 	this.stop = function() {
-	console.log('stop');
 		clearInterval(interval);
-		this.frame = 0;
 	};
 	this.clear = function() {
 		this.node.clearRect(0, 0, this.node.canvas.width, this.node.canvas.height);
+	};
+	this.goto = function(frame_name) {
+		if( typeof(frame_name) == 'object') frame_name = frame_name.name;
+	
+		if( typeof(this.frames[frame_name]) == 'undefined' ) return false;
+		
+		this.currentFrame = frame_name;
+		return true;
+	};
+	this.addFrame = function(frame) {
+		if( typeof(this.frames[frame.name]) != 'undefined' ) return;
+		this.frames[frame.name] = frame;
+		
+		if(propertyCount(this.frames) == 1) this.currentFrame = frame.name;
+		
+		return this;
 	}
 }
 
