@@ -1,0 +1,101 @@
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>Canvas</title>
+	
+	<style type="text/css" media="screen">
+	html, body { background: black; text-align: center; color: #fff }
+	a { color: white; text-decoration: none }
+	canvas { border: 1px solid #4da612; border-left: 1px dotted #a61212; border-right: 1px dotted #a61212; cursor: crosshair }
+	</style>
+	
+	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script type="text/javascript" language="javascript" charset="utf-8">
+	
+	function init() {
+		var n = document.getElementById("area").getNCanvas();
+		
+		var bar_pc = new NRect();
+		bar_pc.set({width: 13, height: 60, x: 10, y: n.stage.height/2 - 30, fillColor: '#4da612', accX: 3, accY: 3});
+		n.stage.addChild(bar_pc);
+		
+		var keys = {up: false, down: false};
+		window.onkeydown = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = true; break;
+				case 40: keys.down = true; break;
+			}
+		}
+		window.onkeyup = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = false; break;
+				case 40: keys.down = false; break;
+			}
+		}
+		
+		var bar_player = new NRect({ny: n.stage.height/2 - 30});
+		bar_player.set({width: 13, height: 60, x: n.stage.width - 23, y: n.stage.height/2 - 30, fillColor: '#4da612', accX: 3, accY: 3});
+		bar_player.addListener('onEnterFrame', function(e) {
+			if(keys.up) this.ny -= 10;
+			if(keys.down) this.ny += 10;
+			if(this.ny < 0) {
+				this.ny = 0
+			} else if( this.ny + this.height > n.stage.height ) {
+				this.ny = n.stage.height - this.height
+			}
+			this.y = this.ny;
+		});
+		n.stage.addChild(bar_player);
+		
+		var ball = new NRect();
+		ball.set({fillColor: '#4da612', width: 10, height: 10, accX: -6, accY: 0, accMax: 6, x: n.stage.width/2, y: n.stage.height/2});
+		n.stage.addChild(ball);
+		
+		
+		ball.addListener('onEnterFrame', function(e) {
+			var newPosition = {y: this.y + this.accY, x: this.x + this.accX, width: this.width, height: this.height};
+			
+			if ( this.x + this.accX + this.width >= bar_player.x && this.intersects(bar_player)) {
+				var coeffY = (((bar_player.y + bar_player.height/2) - (newPosition.y + newPosition.height/2)) / (bar_player.height/2))*(Math.PI/4);
+				this.x = bar_player.x - this.width;
+				this.accY = -1*Math.sin(coeffY)*this.accMax;
+				this.accX = -1*Math.cos(coeffY)*this.accMax;
+				if( this.accMax < 14 ) {
+					this.accMax += 0.3;
+				}
+				this.accMax += 0.3;
+			} else if(this.x > bar_player.x) {
+				n.stop();
+			} else if(this.x <= 0) {
+				this.accX *= -1;
+				this.x = 1;
+			} else {
+				this.x += this.accX;
+			}
+			
+			
+			if ( this.y + this.width + this.accY > e.canvas.stage.height ) {
+				this.y -= this.accY - (e.canvas.stage.height - this.y - this.height)
+				this.accY *= -1
+			} else if(this.y + this.accY < 0) {
+				this.y -= this.y + this.accY;
+				this.accY *= -1;
+			} else {
+				this.y += this.accY;
+			}
+		});
+		
+		n.node.canvas.onmousemove = function(e) {
+			bar_player.ny = e.offsetY - bar_player.height/2
+		}
+		
+		n.loop(50, function(){
+			n.clear();
+		});
+	}
+	</script>
+</head>
+<body onload="init();">
+	<canvas id="area" width="400" height="300">You are so not 2010!</canvas>
+</body>
+</html>
