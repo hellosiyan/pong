@@ -17,10 +17,18 @@ y: 2164901,		z: 15763599,	0: 2266274,		1: 2164834,
 function NText() {
 	this.color = '#fff';
 	this.text = 'a';
+	this.shadowOffsetX = 0;
+	this.shadowOffsetY = 0;
+	this.shadowBlur = 0;
+	this.shadowColor = '#fff';
 	NDrawable.call(this, arguments[0])
 	this.draw = function(ctx) {
 		ctx.fillStyle = this.color;
 		ctx.globalAlpha = this.opacity;
+		ctx.shadowOffsetX = this.shadowOffsetX;
+		ctx.shadowOffsetY = this.shadowOffsetY;
+		ctx.shadowBlur = this.shadowBlur;
+		ctx.shadowColor = this.shadowColor;
 		
 		var bw = Math.ceil(this.width/5);
 		var bh = Math.ceil(this.height/5);

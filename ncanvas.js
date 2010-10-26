@@ -209,6 +209,18 @@ function NCanvas() {
 	this.currentFrame = '0';
 	this.stage = new NContainer();
 	this.node = null;
+	this.iter = function() {
+		this.frames[this.currentFrame].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
+		
+		for( child_index in this.stage.children ) {
+			this.stage.children[child_index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
+			if (this.stage.children[child_index].visible) {
+				this.node.save();
+				this.stage.children[child_index].draw(this.node);
+				this.node.restore();
+			}
+		}
+	}
 	this.loop = function(fps, cb) {
 		this.fps = fps ? fps : this.fps;
 		this.cb = cb ? cb : this.cb;

@@ -6,17 +6,26 @@
 	<style type="text/css" media="screen">
 	html, body { background: black; text-align: center; color: #fff }
 	a { color: white; text-decoration: none }
-	canvas { border-top: 1px solid #4da612; border-bottom: 1px solid #4da612; cursor: crosshair }
+	canvas { border-top: 1px solid #000; border-bottom: 1px solid #000; cursor: crosshair }
+	#board { margin-top: 10px; }
 	</style>
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
+		console.log(n.node)
+		
+		var board = document.getElementById("board").getNCanvas(); 
+		
+		var separator = new NRect({x: n.stage.width/2, y: 0, width: 1, height: n.stage.height, fillColor: '#4da612'});
+		n.stage.addChild(separator);
 		
 		var bar_pc = new NRect();
-		bar_pc.set({width: 13, height: 60, x: 10, y: n.stage.height/2 - 30, fillColor: '#4da612', accY: 0});
+		var bar_pc_defaults = {width: 13, height: 60, x: 10, y: n.stage.height/2 - 30, fillColor: '#4da612', accY: 0, opacity: 1};
+		bar_pc.set(bar_pc_defaults);
 		n.stage.addChild(bar_pc);
 		
 		var keys = {up: false, down: false};
@@ -34,15 +43,78 @@
 		}
 		
 		var bar_player = new NRect({ny: n.stage.height/2 - 30});
-		bar_player.set({width: 13, height: 60, x: n.stage.width - 23, y: n.stage.height/2 - 30, fillColor: '#4da612'});
+		var bar_player_defaults = {width: 13, height: 60, x: n.stage.width - 23, y: n.stage.height/2 - 30, fillColor: '#4da612', opacity: 1};
+		bar_player.set(bar_player_defaults);
 		n.stage.addChild(bar_player);
 		
 		var ball = new NRect();
-		ball.set({fillColor: '#4da612', width: 10, height: 10, x: n.stage.width/2, y: n.stage.height/2, accX: -6, accY: 0, accMax: 6});
+		var ball_defaults = {fillColor: '#4da612', width: 10, height: 10, x: n.stage.width/2, y: n.stage.height/2, accX: -6, accY: 0, accMax: 6, opacity: 1};
+		ball.set(ball_defaults);
 		n.stage.addChild(ball);
 		
 		var gameFrame = new NFrame({name: 'game'});
 		n.addFrame(gameFrame);
+		
+		var loseFrame = new NFrame({name: 'loses'});
+		n.addFrame(loseFrame);
+		
+		var startFrame = new NFrame({name: 'start'});
+		n.addFrame(startFrame);
+		
+		n.goto(startFrame);
+		
+		var status = new NText({x: n.stage.width/2 - 146, y: n.stage.height/2 - 9, width: 17, height: 17, text: 'Click to start!', color: '#4da612'});
+		n.stage.addChild(status);
+		
+		status.shadowOffsetX = 0;
+		status.shadowOffsetY = 0;
+		status.shadowBlur    = 8;
+		status.shadowColor   = '#4da612';
+		
+		board.addFrame(new NFrame({name: 'default'}));
+		
+		n.fps = 2;
+		ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
+		startFrame.addListener('onEnterFrame', function(e) {
+			status.opacity = 0.5 + (status.opacity<=0.5)*0.5;
+		});
+		
+		loseFrame.addListener('onEnterFrame', function(e) {
+			ball.opacity = (ball.opacity-0.02 < 0)?0:ball.opacity - 0.02;
+			bar_pc.opacity = (bar_pc.opacity-0.04 < 0)?0:bar_pc.opacity - 0.04;
+			bar_player.opacity = (bar_player.opacity-0.03 < 0)?0:bar_player.opacity - 0.03;
+			if( ball.opacity <= 0 && bar_pc.opacity <= 0 && bar_player.opacity <= 0 ) {
+				status.set({text: 'Play Again?', x: n.stage.width/2 - 110});
+				resetGame();
+			}
+		});
+		
+		n.node.canvas.onmouseup = function() {
+			if ( n.currentFrame == 'start') {
+				n.stop();
+				status.visible = false;
+				ball.visible = bar_pc.visible = bar_player.visible = separator.visible = true;
+				n.goto(gameFrame);
+				n.loop(50);
+				n.node.canvas.style['borderTop'] = "1px solid #4da612";
+				n.node.canvas.style['borderBottom'] = "1px solid #4da612";
+			}
+		}
+		
+		function resetGame() {
+			status.visible = true;
+			ball.set(ball_defaults);
+			bar_pc.set(bar_pc_defaults);
+			bar_player.set(bar_player_defaults);
+			ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
+			n.stop();
+			n.clear();
+			n.goto(startFrame);
+			n.iter();
+			n.loop(2);
+			n.node.canvas.style['borderTop'] = "";
+			n.node.canvas.style['borderBottom'] = "";
+		}
 		
 		gameFrame.addListener('onEnterFrame', function(e) {
 			// Position bar_player
@@ -93,6 +165,9 @@
 				bar_pc.accY = (endY - (bar_pc.y + bar_pc.height/2))/frames;
 			} else if(ball.x > bar_player.x) {
 				n.stop();
+				n.clear();
+				n.goto(loseFrame);
+				n.loop(25);
 			} else if( ball.x + ball.accX <= bar_pc.x + bar_pc.width && ball.intersects(bar_pc) ) {
 				var coeffY = (((bar_pc.y + bar_pc.height/2) - (newPosition.y + newPosition.height/2)) / (bar_pc.height/2))*(Math.PI/4);
 				ball.x = bar_pc.x + bar_pc.width;
@@ -120,11 +195,10 @@
 			bar_player.ny = e.clientY - e.target.offsetTop - bar_player.height/2
 		}
 		
+		n.iter();
 		n.loop();
 	}
 	</script>
 </head>
-<body onload="init();">
-	<canvas id="area" width="400" height="300">You are so not 2010!</canvas>
-</body>
+<body onload="init();"><canvas id="area" width="400" height="300">You are so not 2010!</canvas><br /><canvas id="board" width="400" height="40"></canvas></body>
 </html>
