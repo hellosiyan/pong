@@ -204,14 +204,14 @@ NFrame.prototype.constructor = NFrame;
 function NCanvas() {
 	var interval = null;
 	this.fps = 60;
-	this.cb = function(){};
+	this.cb = function(){ this.clear(); };
 	this.frames = {};
 	this.currentFrame = '0';
 	this.stage = new NContainer();
 	this.node = null;
 	this.loop = function(fps, cb) {
-		this.fps = fps;
-		this.cb = cb;
+		this.fps = fps ? fps : this.fps;
+		this.cb = cb ? cb : this.cb;
 		
 		// Create frame if one doesn't already exist
 		if( propertyCount(this.frames) == 0 ) {
@@ -221,7 +221,7 @@ function NCanvas() {
 		var _this = this;
 		
 		interval = setInterval(function(){
-			cb.call(_this);
+			_this.cb();
 			
 			_this.frames[_this.currentFrame].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: _this}));
 			
@@ -233,7 +233,7 @@ function NCanvas() {
 					_this.node.restore();
 				}
 			}
-		}, 1000/fps);
+		}, 1000/this.fps);
 	};
 	this.stop = function() {
 		clearInterval(interval);
