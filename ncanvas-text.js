@@ -11,7 +11,7 @@ y: 2164901,		z: 15763599,	0: 2266274,		1: 2164834,
 '!': 1049633,	'?': 2099331,	'.': 1048576,	'+': 72768,
 '-': 7168,		'/': 1083524,	'*': 5189,		'%': 26808627,
 '$': 7674030,	':': 32800,		'#': 11512810,	'(': 2130978,
-')': 1116225
+')': 1116225, ' ': 0,
 };
 
 function NText() {
@@ -33,19 +33,49 @@ function NText() {
 		var bw = Math.ceil(this.width/5);
 		var bh = Math.ceil(this.height/5);
 		var data = 0;
+		var cursor = Math.ceil(this.x);
 		
-		for(k=0; k<this.text.length; k++) {
+		for(var k=0; k<this.text.length; k++) {
 			data = _ntext_char_data[this.text.charAt(k).toLowerCase()];
-			for(i=0; i<5; i++) {
-				for(j=0; j<5; j++) {
+			if( data == undefined ) continue;
+			
+			for(var i=0; i<5; i++) {
+				for(var j=0; j<5; j++) {
 					if( data&(1<<(5*i+j)) ) {
-						ctx.fillRect(k*(this.width+bw) + this.x + j*bw, this.y + i*bh, bw, bh);
+						ctx.fillRect(cursor + j*bw, this.y + i*bh, bw, bh);
 					}
 				}
+			}
+			cursor += bw*6;
+			
+			var mask = 17318416;
+			while(((~data)&mask) == mask && (mask > 1082401)) {
+				cursor -= bw;
+				mask = mask >>> 1;
 			}
 		}
 		
 		return this;
+	}
+	this.textWidth = function() {
+		var bw = Math.ceil(this.width/5);
+		var data = 0;
+		var width = 0;
+		
+		for(var k=0; k<this.text.length; k++) {
+			data = _ntext_char_data[this.text.charAt(k).toLowerCase()];
+			if( data == undefined ) continue;
+			
+			width += bw*6;
+			
+			var mask = 17318416;
+			while(((~data)&mask) == mask && (mask > 1082401)) {
+				width -= bw;
+				mask = mask >>> 1;
+			}
+		}
+		
+		return width;
 	}
 }
 NText.prototype = new NDrawable();

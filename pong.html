@@ -16,7 +16,6 @@
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
-		console.log(n.node)
 		
 		var board = document.getElementById("board").getNCanvas(); 
 		
@@ -63,7 +62,8 @@
 		
 		n.goto(startFrame);
 		
-		var status = new NText({x: n.stage.width/2 - 146, y: n.stage.height/2 - 9, width: 17, height: 17, text: 'Click to start!', color: '#4da612'});
+		var status = new NText({x: 0, y: n.stage.height/2 - 9, width: 20, height: 20, text: 'Click to start!', color: '#4da612'});
+		status.x = n.stage.width/2 - status.textWidth()/2;
 		n.stage.addChild(status);
 		
 		status.shadowOffsetX = 0;
