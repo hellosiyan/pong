@@ -18,8 +18,18 @@
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
+		var score = 0;
+		var hits = 0
 		
-		var separator = new NRect({x: n.stage.width/2, y: 0, width: 1, height: n.stage.height, fillColor: '#4da612'});
+		var board = new NText({x: 0, y:10, text: 'Score: 123', color: '#4da612', width: 15, height: 15, opacity: 0.8, visible: false});
+		board.x = n.stage.width/2 - board.textWidth()/2;
+		board.shadowOffsetX = 0;
+		board.shadowOffsetY = 0;
+		board.shadowBlur    = 8;
+		board.shadowColor   = '#4da612';
+		n.stage.addChild(board);
+		
+		var separator = new NRect({x: n.stage.width/2, y: 35, width: 1, height: n.stage.height - 35, fillColor: '#4da612'});
 		n.stage.addChild(separator);
 		
 		var bar_pc = new NRect();
@@ -93,6 +103,9 @@
 			if ( n.currentFrame == 'start') {
 				n.stop();
 				status.visible = false;
+				board.visible = true;
+				score = hits = 0;
+				board.text = 'score: 0';
 				ball.visible = bar_pc.visible = bar_player.visible = separator.visible = true;
 				n.goto(gameFrame);
 				n.loop(50);
@@ -140,8 +153,11 @@
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
-					ball.accMax += 0.5;
+					ball.accMax += 0.4;
 				}
+				hits ++;
+				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
+				board.text = 'score: ' + score;
 				
 				// Animate bar_pc
 				var frames = Math.floor(Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX));
