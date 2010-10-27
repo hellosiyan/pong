@@ -153,14 +153,14 @@
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
-					ball.accMax += 0.4;
+					ball.accMax += 0.2;
 				}
 				hits ++;
 				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
 				board.text = 'score: ' + score;
 				
 				// Animate bar_pc
-				var frames = Math.floor(Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX));
+				var frames = Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX);
 				var endY = ball.y;
 				var endAccY = ball.accY;
 				for (var i=0; i < frames; i++) {
@@ -174,7 +174,7 @@
 						endY += endAccY;
 					}
 				}
-				bar_pc.accY = (endY - (bar_pc.y + bar_pc.height/2))/frames;
+				bar_pc.accY = (endY - (bar_pc.y + bar_pc.height/2))/frames + (0.5 - Math.random());
 			} else if(ball.x > bar_player.x) {
 				n.stop();
 				n.clear();
