@@ -4,10 +4,12 @@
 	<title>Canvas</title>
 	
 	<style type="text/css" media="screen">
-	html, body { background: black; text-align: center; color: #fff }
+	* { margin: 0; padding: 0; outline: 0; }
+	html, body { background: black; text-align: center; color: #4da612; }
+	h1 { background: url(pong.gif) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
 	a { color: white; text-decoration: none }
-	canvas { border-top: 1px solid #000; border-bottom: 1px solid #000; cursor: crosshair }
-	#board { margin-top: 10px; }
+	canvas { border-top: 1px solid #4da612; border-bottom: 1px solid #4da612; cursor: crosshair; margin-top: 30px; }
+	p { height: 22px; margin-top: 30px; background: url(footer.gif) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
 	</style>
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
@@ -16,8 +18,6 @@
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
-		
-		var board = document.getElementById("board").getNCanvas(); 
 		
 		var separator = new NRect({x: n.stage.width/2, y: 0, width: 1, height: n.stage.height, fillColor: '#4da612'});
 		n.stage.addChild(separator);
@@ -71,8 +71,6 @@
 		status.shadowBlur    = 8;
 		status.shadowColor   = '#4da612';
 		
-		board.addFrame(new NFrame({name: 'default'}));
-		
 		n.fps = 2;
 		ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
 		startFrame.addListener('onEnterFrame', function(e) {
@@ -80,11 +78,13 @@
 		});
 		
 		loseFrame.addListener('onEnterFrame', function(e) {
-			ball.opacity = (ball.opacity-0.02 < 0)?0:ball.opacity - 0.02;
+			separator.opacity = (separator.opacity-0.04 < 0)?0:separator.opacity - 0.04;
 			bar_pc.opacity = (bar_pc.opacity-0.04 < 0)?0:bar_pc.opacity - 0.04;
 			bar_player.opacity = (bar_player.opacity-0.03 < 0)?0:bar_player.opacity - 0.03;
-			if( ball.opacity <= 0 && bar_pc.opacity <= 0 && bar_player.opacity <= 0 ) {
-				status.set({text: 'Play Again?', x: n.stage.width/2 - 110});
+			ball.opacity = (ball.opacity-0.02 < 0)?0:ball.opacity - 0.02;
+			if( ball.opacity <= 0 && bar_pc.opacity <= 0 && bar_player.opacity <= 0 && separator.opacity <= 0 ) {
+				status.text = 'Play Again?';
+				status.x = n.stage.width/2 - status.textWidth()/2;
 				resetGame();
 			}
 		});
@@ -96,8 +96,6 @@
 				ball.visible = bar_pc.visible = bar_player.visible = separator.visible = true;
 				n.goto(gameFrame);
 				n.loop(50);
-				n.node.canvas.style['borderTop'] = "1px solid #4da612";
-				n.node.canvas.style['borderBottom'] = "1px solid #4da612";
 			}
 		}
 		
@@ -106,14 +104,12 @@
 			ball.set(ball_defaults);
 			bar_pc.set(bar_pc_defaults);
 			bar_player.set(bar_player_defaults);
+			separator.opacity = 1;
 			ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
 			n.stop();
 			n.clear();
 			n.goto(startFrame);
-			n.iter();
 			n.loop(2);
-			n.node.canvas.style['borderTop'] = "";
-			n.node.canvas.style['borderBottom'] = "";
 		}
 		
 		gameFrame.addListener('onEnterFrame', function(e) {
@@ -200,5 +196,5 @@
 	}
 	</script>
 </head>
-<body onload="init();"><canvas id="area" width="400" height="300">You are so not 2010!</canvas><br /><canvas id="board" width="400" height="40"></canvas></body>
+<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
 </html>
