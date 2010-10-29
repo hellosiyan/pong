@@ -96,6 +96,13 @@ function NDrawable() {
 		
 		return false;
 	}
+	this.addTo = function() {
+		for (i = arguments.length -1; i >= 0; i--) {
+			if (NScene.prototype.isPrototypeOf(arguments[i])) {
+				arguments[i].addChild(this);
+			}
+		}
+	}
 }
 NDrawable.prototype = new NEventDispatcher(); 
 NDrawable.prototype.constructor = NDrawable;
@@ -105,8 +112,8 @@ NDrawable.prototype.constructor = NDrawable;
 /* NBounce */
 function NBounce (ndrawable) {
 	ndrawable.addListener('onEnterFrame', function(e) {
-		if ( this.x + this.width + this.accX > e.canvas.stage.width ) {
-			this.x -= this.accX - (e.canvas.stage.width - this.x - this.width)
+		if ( this.x + this.width + this.accX > e.canvas.width ) {
+			this.x -= this.accX - (e.canvas.width - this.x - this.width)
 			this.accX *= -1
 		} else if(this.x + this.accX < 0) {
 			this.x -= this.x + this.accX;
@@ -115,8 +122,8 @@ function NBounce (ndrawable) {
 			this.x += this.accX;
 		}
 		
-		if ( this.y + this.width + this.accY > e.canvas.stage.height ) {
-			this.y -= this.accY - (e.canvas.stage.height - this.y - this.height)
+		if ( this.y + this.width + this.accY > e.canvas.height ) {
+			this.y -= this.accY - (e.canvas.height - this.y - this.height)
 			this.accY *= -1
 		} else if(this.y + this.accX < 0) {
 			this.y -= this.y + this.accY;
@@ -191,61 +198,51 @@ function NContainer() {
 NContainer.prototype = new NRect();
 NContainer.prototype.constructor = NContainer;
 
-/* NFrame */
-function NFrame() {
-	this.name = '0';
-	NEventDispatcher.call(this, arguments[0]);
+/* NScene */
+function NScene() {
+	this.name = 'scene0';
+	NContainer.call(this, arguments[0]);
 }
-NFrame.prototype = new NEventDispatcher();
-NFrame.prototype.constructor = NFrame;
+NScene.prototype = new NContainer();
+NScene.prototype.constructor = NScene;
 
 
 /* NCanvas */
 function NCanvas() {
 	var interval = null;
 	this.fps = 60;
-	this.cb = function(){ this.clear(); };
-	this.frames = {};
-	this.currentFrame = '0';
-	this.stage = new NContainer();
+	this.width = 1;
+	this.height = 1;
+	this.autoClear = true;
+	this.scene = null;
 	this.node = null;
 	this.iter = function() {
-		this.frames[this.currentFrame].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
+		this.scene.triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
 		
-		for( child_index in this.stage.children ) {
-			this.stage.children[child_index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
-			if (this.stage.children[child_index].visible) {
+		if( this.autoClear ) this.clear();
+		
+		for( index in this.scene.children ) {
+			this.scene.children[index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
+			if (this.scene.children[index].visible) {
 				this.node.save();
-				this.stage.children[child_index].draw(this.node);
+				this.scene.children[index].draw(this.node);
 				this.node.restore();
 			}
 		}
 	}
-	this.loop = function(fps, cb) {
+	this.play = function(scene, fps) {
+		this.scene = scene ? scene : this.scene;
 		this.fps = fps ? fps : this.fps;
-		this.cb = cb ? cb : this.cb;
-		
-		// Create frame if one doesn't already exist
-		if( propertyCount(this.frames) == 0 ) {
-			this.frames[this.currentFrame] = new NFrame({name: this.currentFrame});
+		if ( interval != null) {
+			this.stop();
 		}
 		
 		var _this = this;
 		
 		interval = setInterval(function(){
-			_this.cb();
-			
-			_this.frames[_this.currentFrame].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: _this}));
-			
-			for( child_index in _this.stage.children ) {
-				_this.stage.children[child_index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: _this}));
-				if (_this.stage.children[child_index].visible) {
-					_this.node.save();
-					_this.stage.children[child_index].draw(_this.node);
-					_this.node.restore();
-				}
-			}
+			_this.iter();
 		}, 1000/this.fps);
+		this.iter();
 	};
 	this.stop = function() {
 		clearInterval(interval);
@@ -253,28 +250,12 @@ function NCanvas() {
 	this.clear = function() {
 		this.node.clearRect(0, 0, this.node.canvas.width, this.node.canvas.height);
 	};
-	this.goto = function(frame_name) {
-		if( typeof(frame_name) == 'object') frame_name = frame_name.name;
-	
-		if( typeof(this.frames[frame_name]) == 'undefined' ) return false;
-		
-		this.currentFrame = frame_name;
-		return true;
-	};
-	this.addFrame = function(frame) {
-		if( typeof(this.frames[frame.name]) != 'undefined' ) return;
-		this.frames[frame.name] = frame;
-		
-		if(propertyCount(this.frames) == 1) this.currentFrame = frame.name;
-		
-		return this;
-	}
 }
 
 HTMLCanvasElement.prototype.getNCanvas = function() {
 	var ctx = new NCanvas();
 	ctx.node = this.getContext('2d');
-	ctx.stage.width = this.width;
-	ctx.stage.height = this.height;
+	ctx.width = this.width;
+	ctx.height = this.height;
 	return ctx;
 }
