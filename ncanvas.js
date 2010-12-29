@@ -216,6 +216,7 @@ function NCanvas() {
 	this.autoClear = true;
 	this.scene = null;
 	this.node = null;
+	NObject.call(this, arguments[0])
 	this.iter = function() {
 		this.scene.triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
 		
@@ -247,10 +248,12 @@ function NCanvas() {
 	this.stop = function() {
 		clearInterval(interval);
 	};
-	this.clear = function() {
+}
+NCanvas.prototype = new NObject();
+NCanvas.prototype.constructor = NCanvas;
+	NCanvas.prototype.clear = function() {
 		this.node.clearRect(0, 0, this.node.canvas.width, this.node.canvas.height);
 	};
-}
 
 HTMLCanvasElement.prototype.getNCanvas = function() {
 	var ctx = new NCanvas();
