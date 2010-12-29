@@ -58,7 +58,7 @@
 		bar_player.addTo(gameScene, loseScene, startScene);
 		
 		var ball = new NRect();
-		var ball_defaults = {fillColor: '#4da612', width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 6, opacity: 1};
+		var ball_defaults = {fillColor: '#4da612', width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7, opacity: 1};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
 		
@@ -73,7 +73,7 @@
 		
 		ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
 		startScene.addListener('onEnterFrame', function(e) {
-			status.opacity = 0.5 + (status.opacity<=0.5)*0.5;
+			status.opacity = status.opacity<=0.5 ? 1:0.5;
 		});
 		
 		loseScene.addListener('onEnterFrame', function(e) {
@@ -139,13 +139,14 @@
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.2;
+					bar_player.height -= 0.2;
 				}
 				hits ++;
 				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
 				board.text = 'score: ' + score;
 				
 				// Animate bar_pc
-				var frames = Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX);
+				var frames = Math.ceil(Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX));
 				var endY = ball.y;
 				var endAccY = ball.accY;
 				for (var i=0; i < frames; i++) {
@@ -159,11 +160,11 @@
 						endY += endAccY;
 					}
 				}
-				bar_pc.accY = (endY - (bar_pc.y + bar_pc.height/2))/frames + (0.5 - Math.random());
+				bar_pc.accY = (endY + ball.height/2 + (0.5 - Math.random())*((bar_pc.height - 10)/2) - (bar_pc.y + bar_pc.height/2))/frames;
 			} else if(ball.x > bar_player.x) {
 				n.play(loseScene, loseScene.fps);
 			} else if( ball.x + ball.accX <= bar_pc.x + bar_pc.width && ball.intersects(bar_pc) ) {
-				var coeffY = (((bar_pc.y + bar_pc.height/2) - (newPosition.y + newPosition.height/2)) / (bar_pc.height/2))*(Math.PI/4);
+				var coeffY = (((bar_pc.y + bar_pc.height/2) - (ball.y + ball.height/2)) / (bar_pc.height/2))*(Math.PI/4);
 				ball.x = bar_pc.x + bar_pc.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = Math.cos(coeffY)*ball.accMax;
