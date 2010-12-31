@@ -91,13 +91,13 @@ function NPoint () {
 		this.z = rc.z + d.y*sint + d.z*cost;
 	}
 	
-	this.rotateY = function(theta, rc) {
-		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
+	this.rotateY = function(theta) {
 		var sint = Math.sin(theta);
 		var cost = Math.cos(theta);
-		this.x = rc.x + d.x*cost + d.z*sint; 
-		this.y = rc.y + d.y; 
-		this.z = rc.z - d.x*sint + d.z*cost
+		var d = {x: this.x, y: this.y, z: this.z}
+		this.x = d.x*cost + d.z*sint; 
+		this.y = d.y; 
+		this.z = d.x*sint + d.z*cost
 	}
 	
 	this.rotateZ = function(theta, rc) {
@@ -110,11 +110,11 @@ function NPoint () {
 	}
 	
 	this.get2d = function (fc) {
-		if( fc.z <= this.z ) {
-			return false;
-		} 
+//		return this;
 		var delta = fc.z/(fc.z-this.z);
-		
+		if( fc.z < this.z ) {
+			return false;
+		}
 		return {x: fc.x - (fc.x - this.x)*delta, y: fc.y - (fc.y - this.y)*delta, radius: this.radius*delta};
 	}
 	this.draw = function(ctx, fc) {
@@ -129,9 +129,9 @@ function NPoint () {
 		ctx.closePath();
 		ctx.fill();
 	}
-	this.lineTo = function(ctx, dest, fc) {
-		var t2d = this.get2d(fc);
-		var dest2d = dest.get2d(fc);
+	this.lineTo = function(ctx, dest) {
+		var t2d = this.get2d(this.center);
+		var dest2d = dest.get2d(dest.center);
 		if( !t2d || !dest2d ) {
 			return;
 		}
@@ -139,7 +139,6 @@ function NPoint () {
 		ctx.beginPath();  
 		ctx.strokeStyle = this.lineColor;
 		ctx.lineWidth = (t2d.radius*2 + dest2d.radius*2)/2
-		//ctx.lineCap = 'round'
 		ctx.lineJoin = 'round'
 		ctx.moveTo(t2d.x, t2d.y);  
 		ctx.lineTo(dest2d.x, dest2d.y);
@@ -149,6 +148,42 @@ function NPoint () {
 }
 NPoint.prototype = new NObject(); 
 NPoint.prototype.constructor = NPoint;
+
+
+/* NPolygon */
+function NPolygon () {
+	this.x = 0;
+	this.y = 0;
+	this.z = 0;
+	this.geomCenter = new NPoint();
+	this.points = [];
+	this.visible = true;
+	NObject.call(this, arguments[0]);
+	
+	this.addPoints = function (points) {
+		for (index in points) {
+			this.points[index] = new NPoint({x: this.geomCenter.x + points[index].x, y: this.geomCenter.y + points[index].y, z: this.geomCenter.z + points[index].z});
+		}
+	}
+	
+	this.rotateY = function(theta) {
+		for (index in this.points) {
+			this.points[index].rotateY(theta);
+		}
+	}
+	
+	
+	this.draw = function(ctx, camera) {
+		console.log(this.points[0].x);
+		for (index in this.points) {
+			//var a = new NPoint({x: this.geomCenter.x + this.points[index].x, y: this.geomCenter.y + this.points[index].y, z: this.geomCenter.z + this.points[index].z});
+			//a.draw(ctx, camera);
+			this.points[index].draw(ctx, camera);
+		}
+	}
+}
+NPolygon.prototype = new NObject(); 
+NPolygon.prototype.constructor = NPoint;
 
 /* NDrawable */
 function NDrawable() {

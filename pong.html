@@ -8,7 +8,7 @@
 	html, body { background: black; text-align: center; color: #4da612; }
 	h1 { height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
 	a { color: white; text-decoration: none }
-	canvas { cursor: crosshair; margin-top: 30px; }
+	canvas { border: 1px solid white; cursor: crosshair; margin-top: 30px; }
 	p { height: 22px; margin-top: 30px; font-size:0; line-height: 0; text-indent: -4000px; }
 	</style>
 	
@@ -49,68 +49,57 @@
 		}
 		
 		var stroke = '#4da612';
+		
+		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
+		
 //		stroke = '#ffffff';
-		var points = {
-			t11 : new NPoint({x: n.width/2 - 50, y: n.height/2 - 50, z: -50, lineColor: stroke, color: stroke}),
-			t12 : new NPoint({x: n.width/2 + 50, y: n.height/2 - 50, z: -50, lineColor: stroke, color: stroke}),
-			t13 : new NPoint({x: n.width/2 + 50, y: n.height/2 + 50, z: -50, lineColor: stroke, color: stroke}),
-			t14 : new NPoint({x: n.width/2 - 50, y: n.height/2 + 50, z: -50, lineColor: stroke, color: stroke}),
-			t21 : new NPoint({x: n.width/2 - 50, y: n.height/2 - 50, z: 50, lineColor: stroke, color: stroke}),
-			t22 : new NPoint({x: n.width/2 + 50, y: n.height/2 - 50, z: 50, lineColor: stroke, color: stroke}),
-			t23 : new NPoint({x: n.width/2 + 50, y: n.height/2 + 50, z: 50, lineColor: stroke, color: stroke}),
-			t24 : new NPoint({x: n.width/2 - 50, y: n.height/2 + 50, z: 50, lineColor: stroke, color: stroke}),
-			t31 : new NPoint({x: n.width/2, y: n.height/2, z: - 75, lineColor: stroke, color: stroke}),
-			t32 : new NPoint({x: n.width/2, y: n.height/2, z: + 75, lineColor: stroke, color: stroke}),
-			t33 : new NPoint({x: n.width/2 + 75, y: n.height/2, z: 0, lineColor: stroke, color: stroke}),
-			t34 : new NPoint({x: n.width/2 - 75, y: n.height/2, z: 0, lineColor: stroke, color: stroke}),
-			t35 : new NPoint({x: n.width/2, y: n.height/2 + 75, z: 0, lineColor: stroke, color: stroke}),
-			t36 : new NPoint({x: n.width/2, y: n.height/2 -75, z: 0, lineColor: stroke, color: stroke})
-		}
+		var points = [
+			new NPoint({x: - 30, y: - 50, z: 0}),
+			new NPoint({x: + 30, y: - 50, z: 0}),
+			new NPoint({x: - 10, y: - 30, z: 0}),
+			new NPoint({x: + 30, y: - 30, z: 0}),
+			new NPoint({x: - 10, y: - 10, z: 0}),
+			new NPoint({x: + 30, y: - 10, z: 0}),
+			new NPoint({x: - 30, y: + 10, z: 0}),
+			new NPoint({x: + 10, y: + 10, z: 0}),
+			new NPoint({x: - 30, y: + 30, z: 0}),
+			new NPoint({x: + 10, y: + 30, z: 0}),
+			new NPoint({x: - 30, y: + 50, z: 0}),
+			new NPoint({x: + 30, y: + 50, z: 0}),
+		];
 		
-		
-		var rc = new NPoint({x: n.width/2, y: n.height/2, z: 300});
-		var rotc = new NPoint({x: n.width/2, y: n.height/2, z: 0});
+		var poly = new NPolygon({x: camera.x, y: camera.y, z: 0});
+		poly.geomCenter = new NPoint({x: camera.x, y: camera.y, z: -100});
+		//poly.points = points;
+		poly.addPoints(points);
 		
 		var theta = Math.PI/180;
 		var i = 0;
 		
-		
-		for (index in points) {
-			//points[index].rotateZ(Math.PI/10, rotc);
-			points[index].draw(n.node, rc);
-		}
-		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
-			
-			rc.z += keys.up * 10;
-			rc.z -= keys.down * 10;
 				
-			for (index in points) {
-				points[index].rotateY(theta, rotc);
-				points[index].rotateX(theta, rotc);
-				points[index].rotateZ(theta, rotc);
-				points[index].draw(n.node, rc);
-			}
-			points.t31.lineTo(n.node, points.t32, rc);
-			points.t33.lineTo(n.node, points.t34, rc);
-			points.t35.lineTo(n.node, points.t36, rc);
+			poly.rotateY(theta);
+			poly.draw(n.node, camera);
+			//poly.z += 2;
 			/*
-			points.t11.lineTo(n.node, points.t21, rc);
-			points.t11.lineTo(n.node, points.t12, rc);
-			points.t11.lineTo(n.node, points.t14, rc);
+			points[0].lineTo(n.node, points[1])
+			points[0].lineTo(n.node, points[6])
 			
-			points.t13.lineTo(n.node, points.t23, rc);
-			points.t13.lineTo(n.node, points.t12, rc);
-			points.t13.lineTo(n.node, points.t14, rc);
+			points[3].lineTo(n.node, points[1])
+			points[3].lineTo(n.node, points[2])
 			
-			points.t22.lineTo(n.node, points.t23, rc);
-			points.t22.lineTo(n.node, points.t21, rc);
-			points.t22.lineTo(n.node, points.t12, rc);
+			points[4].lineTo(n.node, points[5])
+			points[4].lineTo(n.node, points[2])
 			
-			points.t24.lineTo(n.node, points.t21, rc);
-			points.t24.lineTo(n.node, points.t23, rc);
-			points.t24.lineTo(n.node, points.t14, rc);
+			points[7].lineTo(n.node, points[6])
+			points[7].lineTo(n.node, points[9])
+			
+			points[8].lineTo(n.node, points[9])
+			points[8].lineTo(n.node, points[10])
+			
+			points[11].lineTo(n.node, points[5])
+			points[11].lineTo(n.node, points[10])
 			*/
 			/*
 			n.node.beginPath();
@@ -120,8 +109,8 @@
 			n.node.fill();
 			*/
 			// r.z -= 1 - 3*keys.up;
-			if( i >= 400) {
-				//n.stop();
+			if( i >= 120) {
+				n.stop();
 			}
 		});
 		
