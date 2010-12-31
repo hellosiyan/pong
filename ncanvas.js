@@ -9,6 +9,14 @@ propertyCount = function(object) {
 	return count;
 }
 
+nTranslate3d = function (x, y, z, vz) {
+	if( vz <= z ) {
+		return {x: x, y: y, z: z};
+	}
+	var delta = vz/(vz-t.z)
+	return {x: x*delta, y: y*delta, z: z};
+}
+
 /* NObject */
 function NObject() {
 	this.set = function(data) {
@@ -63,12 +71,93 @@ function NEventDispatcher() {
 NEventDispatcher.prototype = new NObject();
 NEventDispatcher.prototype.constructor = NEventDispatcher;
 
+/* NPoint*/
+function NPoint () {
+	this.x = 0;
+	this.y = 0;
+	this.z = 0;
+	this.color = '#ffffff'
+	this.lineColor = '#ffffff'
+	this.radius = 4
+	this.visible = true;
+	NObject.call(this, arguments[0]);
+	
+	this.rotateX = function(theta, rc) {
+		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
+		var sint = Math.sin(theta);
+		var cost = Math.cos(theta);
+		this.x = rc.x + d.x; 
+		this.y = rc.y + d.y*cost - d.z*sint; 
+		this.z = rc.z + d.y*sint + d.z*cost;
+	}
+	
+	this.rotateY = function(theta, rc) {
+		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
+		var sint = Math.sin(theta);
+		var cost = Math.cos(theta);
+		this.x = rc.x + d.x*cost + d.z*sint; 
+		this.y = rc.y + d.y; 
+		this.z = rc.z - d.x*sint + d.z*cost
+	}
+	
+	this.rotateZ = function(theta, rc) {
+		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
+		var sint = Math.sin(theta);
+		var cost = Math.cos(theta);
+		this.x = rc.x + d.x*cost - d.y*sint
+		this.y = rc.y + d.x*sint + d.y*cost;
+		this.z = rc.z + d.z;
+	}
+	
+	this.get2d = function (fc) {
+		if( fc.z <= this.z ) {
+			return false;
+		} 
+		var delta = fc.z/(fc.z-this.z);
+		
+		return {x: fc.x - (fc.x - this.x)*delta, y: fc.y - (fc.y - this.y)*delta, radius: this.radius*delta};
+	}
+	this.draw = function(ctx, fc) {
+		var t2d = this.get2d(fc);
+		if( !t2d ) {
+			return;
+		}
+		
+		ctx.beginPath();
+		ctx.fillStyle = this.color;
+		ctx.arc(t2d.x, t2d.y, t2d.radius, 0, Math.PI*2, true);
+		ctx.closePath();
+		ctx.fill();
+	}
+	this.lineTo = function(ctx, dest, fc) {
+		var t2d = this.get2d(fc);
+		var dest2d = dest.get2d(fc);
+		if( !t2d || !dest2d ) {
+			return;
+		}
+		
+		ctx.beginPath();  
+		ctx.strokeStyle = this.lineColor;
+		ctx.lineWidth = (t2d.radius*2 + dest2d.radius*2)/2
+		//ctx.lineCap = 'round'
+		ctx.lineJoin = 'round'
+		ctx.moveTo(t2d.x, t2d.y);  
+		ctx.lineTo(dest2d.x, dest2d.y);
+		ctx.closePath();
+		ctx.stroke();
+	}
+}
+NPoint.prototype = new NObject(); 
+NPoint.prototype.constructor = NPoint;
+
 /* NDrawable */
 function NDrawable() {
 	this.x = 0;
 	this.y = 0;
+	this.z = 0;
 	this.width = 1;
 	this.height = 1;
+	this.center = new NPoint();
 	this.opacity = 1;
 	this.visible = true;
 	NEventDispatcher.call(this, arguments[0])
@@ -153,9 +242,22 @@ function NRect() {
 	this.fillColor = '#fff';
 	NDrawable.call(this, arguments[0])
 	this.draw = function(ctx) {
+		var t = {x: this.center.x - this.x, y: this.center.y - this.y, z: this.z, w: this.width, h: this.height};
+		var vz = 50; // http://en.wikipedia.org/wiki/3D_projection BZ
+		if( t.z >= vz ) {
+			return this;
+		}
+		var dz = vz/(vz-t.z)
+		console.log(dz);
+		t.x *= dz;
+		t.y *= dz;
+		t.w *= dz;
+		t.h *= dz;
+		console.log(t.x);
+		console.log('----');
 		ctx.fillStyle = this.fillColor;
 		ctx.globalAlpha = this.opacity;
-		ctx.fillRect(this.x, this.y, this.width, this.height);
+		ctx.fillRect(this.center.x - t.x, this.center.y - t.y, t.w, t.h);
 		return this;
 	}
 }
@@ -218,9 +320,9 @@ function NCanvas() {
 	this.node = null;
 	NObject.call(this, arguments[0])
 	this.iter = function() {
-		this.scene.triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
-		
 		if( this.autoClear ) this.clear();
+		
+		this.scene.triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
 		
 		for( index in this.scene.children ) {
 			this.scene.children[index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
@@ -230,6 +332,7 @@ function NCanvas() {
 				this.node.restore();
 			}
 		}
+		
 	}
 	this.play = function(scene, fps) {
 		this.scene = scene ? scene : this.scene;
