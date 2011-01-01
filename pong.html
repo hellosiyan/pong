@@ -19,16 +19,11 @@
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
 		//n.autoClear = false;
+		n.node.globalAlpha = 1
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 40});
-		
-		var r = new NRect({x: n.width/2 - 50, y: n.height/2 - 50, width: 100, height: 100, fillColor: '#4da612'});
-		r.x = 200
-		r.center.x = n.width/2;
-		r.center.y = n.height/2;
-		//r.addTo(mainScene);
+		var mainScene = new NScene({name: 'main', fps: 50});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -52,33 +47,38 @@
 		
 		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
 		
-//		stroke = '#ffffff';
 		var points = [
-			new NPoint({x: - 50, y: - 50, z: -25, color: '#D4A5A6'}),
-			new NPoint({x: + 50, y: - 50, z: -25, color: '#D4A5A6'}),
-			new NPoint({x: + 0, y: - 0, z: -25, color: '#901E1F'}),
-			new NPoint({x: - 50, y: + 50, z: -25, color: '#D4A5A6'}),
-			new NPoint({x: + 50, y: + 50, z: -25, color: '#D4A5A6'}),
-			/*new NPoint({x: - 10, y: - 30, z: 0}),
-			new NPoint({x: + 30, y: - 30, z: 0}),
-			new NPoint({x: - 10, y: - 10, z: 0}),
-			new NPoint({x: + 30, y: - 10, z: 0}),
-			new NPoint({x: - 30, y: + 10, z: 0}),
-			new NPoint({x: + 10, y: + 10, z: 0}),
-			new NPoint({x: - 30, y: + 30, z: 0}),
-			new NPoint({x: + 10, y: + 30, z: 0}),*/
-			
-			new NPoint({x: + 0, y: - 0, z: 25, color: '#4D901E'}),
-			new NPoint({x: - 50, y: - 50, z: 25, color: '#C4D4A5'}),
-			new NPoint({x: + 50, y: - 50, z: 25, color: '#C4D4A5'}),
-			new NPoint({x: - 50, y: + 50, z: 25, color: '#C4D4A5'}),
-			new NPoint({x: + 50, y: + 50, z: 25, color: '#C4D4A5'}),
+			new NPoint({x: - 50, y: - 50, z: 0, color: '#D4A5A6'}),
+			new NPoint({x: + 50, y: - 50, z: 0, color: '#D4A5A6'}),
+			new NPoint({x: - 50, y: + 50, z: 0, color: '#D4A5A6'}),
+			new NPoint({x: + 50, y: + 50, z: 0, color: '#D4A5A6'}),
+		];
+	
+		var points2 = [
+			//new NPoint({x: + 0, y: - 0, z: 0, color: '#4D901E'}),
+			new NPoint({x: - 50, y: - 50, z: 0, color: '#C4D4A5'}),
+			new NPoint({x: + 50, y: - 50, z: 0, color: '#C4D4A5'}),
+			new NPoint({x: - 50, y: + 50, z: 0, color: '#C4D4A5'}),
+			new NPoint({x: + 50, y: + 50, z: 0, color: '#C4D4A5'}),
+		];
+	
+		var points3 = [
+			new NPoint({x: - 50, y: - 50, z: 0, color: '#777BA9'}),
+			new NPoint({x: + 50, y: - 50, z: 0, color: '#777BA9'}),
+			new NPoint({x: - 50, y: + 50, z: 0, color: '#777BA9'}),
+			new NPoint({x: + 50, y: + 50, z: 0, color: '#777BA9'}),
 		];
 		
-		var poly = new NPolygon({x: camera.x, y: camera.y, z: -100});
+		var poly = new NPolygon({x: camera.x, y: camera.y, z: 0});
 		poly.setPoints(points);
 		
-		var theta = Math.PI/60;
+		var poly2 = new NPolygon({x: camera.x, y: camera.y, z: 0});
+		poly2.setPoints(points2);
+		
+		var poly3 = new NPolygon({x: camera.x, y: camera.y, z: 0});
+		poly3.setPoints(points3);
+		
+		var theta = Math.PI/180;
 		var thetaX = 1*theta, thetaY = 1*theta, thetaZ = 1*theta;
 		var i = 0;
 		
@@ -87,43 +87,30 @@
 				
 			//poly.x += 1.2;
 			poly.rotationX += thetaX
-			poly.rotationY += thetaY
-			poly.rotationZ += thetaZ
+			//poly.rotationY += thetaY
+			//poly.rotationZ += thetaZ
 			poly.draw(n.node, camera);
-			//poly.z += 2;
-			/*
-			points[0].lineTo(n.node, points[1])
-			points[0].lineTo(n.node, points[6])
 			
-			points[3].lineTo(n.node, points[1])
-			points[3].lineTo(n.node, points[2])
+			//poly2.rotationX += thetaX
+			poly2.rotationY += thetaY
+			//poly2.rotationZ += thetaZ
+			poly2.draw(n.node, camera);
 			
-			points[4].lineTo(n.node, points[5])
-			points[4].lineTo(n.node, points[2])
+			//poly3.rotationX += thetaX
+			//poly3.rotationY += thetaY
+			poly3.rotationZ += thetaZ
+			poly3.draw(n.node, camera);
 			
-			points[7].lineTo(n.node, points[6])
-			points[7].lineTo(n.node, points[9])
-			
-			points[8].lineTo(n.node, points[9])
-			points[8].lineTo(n.node, points[10])
-			
-			points[11].lineTo(n.node, points[5])
-			points[11].lineTo(n.node, points[10])
-			*/
-			/*
-			n.node.beginPath();
-			n.node.fillStyle = '#4da612';
-			n.node.arc(rc.x, rc.y, 2, 0, Math.PI*2, true);
-			n.node.closePath();
-			n.node.fill();
-			*/
-			// r.z -= 1 - 3*keys.up;
 			if( i >= 320) {
 				//n.stop();
 			}
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
+			//n.clear();
+			poly.y = poly2.y = poly3.y = e.clientY - e.target.offsetTop
+			poly.x = poly2.x = poly3.x = e.clientX - e.target.offsetLeft
+		return
 			poly.y = e.clientY - e.target.offsetTop
 			poly.x = e.clientX - e.target.offsetLeft
 		return;
@@ -132,13 +119,17 @@
 		}
 		
 		n.node.canvas.onmousedown = function(e) {
-			poly.y = e.clientY - e.target.offsetTop
-			poly.x = e.clientX - e.target.offsetLeft
+			//n.clear();
+			poly.y = poly2.y = poly3.y = e.clientY - e.target.offsetTop
+			poly.x = poly2.x = poly3.x = e.clientX - e.target.offsetLeft
 		}
 		
 		n.node.canvas.onmousewheel = function(e) {
-			poly.z += 8 - 16*(e.wheelDelta < 0)
-			console.log(poly.z )
+			n.clear();
+			var step = 8 - 16*(e.wheelDelta < 0);
+			poly.z += step
+			poly2.z += step
+			poly3.z += step
 		}
 		
 		n.play(mainScene, mainScene.fps);
