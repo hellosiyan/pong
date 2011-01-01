@@ -24,7 +24,7 @@
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 60});
+		var mainScene = new NScene({name: 'main', fps: 20});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -46,72 +46,74 @@
 		
 		var stroke = '#4da612';
 		
-		
-		var color = 'black'
+		var type = 'stroke';
+		var color1 = 'black';
+		var color2 = '#ff3333';
 		var s = 30;
 		var points = [
 			// 2
-			new NPoint({x: -3.5*s, y: -2.5*s, z: 0, color: color}),
-			new NPoint({x: -1.5*s, y: -2.5*s, z: 0, color: color}),
-			new NPoint({x: -1.5*s, y: -0.5*s, z: 0, color: color}),
-			new NPoint({x: -3.5*s, y: -0.5*s, z: 0, color: color}),
-			new NPoint({x: -3.5*s, y: 2.5*s, z: 0, color: color}),
-			new NPoint({x: -0.5*s, y: 2.5*s, z: 0, color: color}),
-			new NPoint({x: -0.5*s, y: 1.5*s, z: 0, color: color}),
-			new NPoint({x: -2.5*s, y: 1.5*s, z: 0, color: color}),
-			new NPoint({x: -2.5*s, y: 0.5*s, z: 0, color: color}),
-			new NPoint({x: -0.5*s, y: 0.5*s, z: 0, color: color}),
-			new NPoint({x: -0.5*s, y: -1.5*s, z: 0, color: color}),
-			new NPoint({x: -3.5*s, y: -1.5*s, z: 0, color: color}),
+			new NPoint({x: -3.5*s, y: -2.5*s, z: 0, color: color1}),
+			new NPoint({x: -1.5*s, y: -2.5*s, z: 0, color: color1}),
+			new NPoint({x: -1.5*s, y: -0.5*s, z: 0, color: color1}),
+			new NPoint({x: -3.5*s, y: -0.5*s, z: 0, color: color1}),
+			new NPoint({x: -3.5*s, y: 2.5*s, z: 0, color: color1}),
+			new NPoint({x: -0.5*s, y: 2.5*s, z: 0, color: color1}),
+			new NPoint({x: -0.5*s, y: 1.5*s, z: 0, color: color1}),
+			new NPoint({x: -2.5*s, y: 1.5*s, z: 0, color: color1}),
+			new NPoint({x: -2.5*s, y: 0.5*s, z: 0, color: color1}),
+			new NPoint({x: -0.5*s, y: 0.5*s, z: 0, color: color1}),
+			new NPoint({x: -0.5*s, y: -1.5*s, z: 0, color: color1}),
+			new NPoint({x: -3.5*s, y: -1.5*s, z: 0, color: color1}),
 			// c
-			new NPoint({x: 0.5*s, y: -1.5*s, z: 0, color: color}),
-			new NPoint({x: 3.5*s, y: -1.5*s, z: 0, color: color}),
-			new NPoint({x: 3.5*s, y: -0.5*s, z: 0, color: color}),
-			new NPoint({x: 1.5*s, y: -0.5*s, z: 0, color: color}),
-			new NPoint({x: 1.5*s, y: 1.5*s, z: 0, color: color}),
-			new NPoint({x: 3.5*s, y: 1.5*s, z: 0, color: color}),
-			new NPoint({x: 3.5*s, y: 2.5*s, z: 0, color: color}),
-			new NPoint({x: 0.5*s, y: 2.5*s, z: 0, color: color}),
+			new NPoint({x: 0.5*s, y: -1.5*s, z: 0, color: color2}),
+			new NPoint({x: 3.5*s, y: -1.5*s, z: 0, color: color2}),
+			new NPoint({x: 3.5*s, y: -0.5*s, z: 0, color: color2}),
+			new NPoint({x: 1.5*s, y: -0.5*s, z: 0, color: color2}),
+			new NPoint({x: 1.5*s, y: 1.5*s, z: 0, color: color2}),
+			new NPoint({x: 3.5*s, y: 1.5*s, z: 0, color: color2}),
+			new NPoint({x: 3.5*s, y: 2.5*s, z: 0, color: color2}),
+			new NPoint({x: 0.5*s, y: 2.5*s, z: 0, color: color2}),
 		];
 		
 		for	(index in points) {
-			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*0.5, color: color}));
 			points[index].z += s*0.5;
+			points[index].lineColor = points[index].color;
+			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*1, color: points[index].color, lineColor: points[index].lineColor}));
 		}
 		
 		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: 0});
 		poly.setPoints(points);
 		// front
-		poly.connectRange(0, 11);
-		poly.connectRange(20, 31);
+		poly.connectRange(type, 0, 11);
+		poly.connectRange(type, 20, 31);
 		
-		poly.connectRange(12, 19);
-		poly.connectRange(32, 39);
+		poly.connectRange(type, 12, 19);
+		poly.connectRange(type, 32, 39);
 		
 		// side
-		poly.connect(0, 20, 31, 11);
-		poly.connect(1, 21, 22, 2);
-		poly.connect(10, 30, 29, 9);
-		poly.connect(3, 23, 24, 4);
-		poly.connect(8, 28, 27, 7);
-		poly.connect(6, 26, 25, 5);
+		poly.connect(type, 0, 20, 31, 11);
+		poly.connect(type, 1, 21, 22, 2);
+		poly.connect(type, 10, 30, 29, 9);
+		poly.connect(type, 3, 23, 24, 4);
+		poly.connect(type, 8, 28, 27, 7);
+		poly.connect(type, 6, 26, 25, 5);
 		
-		poly.connect(12, 32, 39, 19);
-		poly.connect(13, 33, 34, 14);
-		poly.connect(17, 37, 38, 18);
-		poly.connect(15, 35, 36, 16);
+		poly.connect(type, 12, 32, 39, 19);
+		poly.connect(type, 13, 33, 34, 14);
+		poly.connect(type, 17, 37, 38, 18);
+		poly.connect(type, 15, 35, 36, 16);
 		// top
-		poly.connect(0, 20, 21, 1);
-		poly.connect(11, 31, 30, 10);
-		poly.connect(3, 23, 22, 2);
-		poly.connect(8, 28, 29, 9);
-		poly.connect(7, 27, 26, 6);
-		poly.connect(4, 24, 25, 5);
+		poly.connect(type, 0, 20, 21, 1);
+		poly.connect(type, 11, 31, 30, 10);
+		poly.connect(type, 3, 23, 22, 2);
+		poly.connect(type, 8, 28, 29, 9);
+		poly.connect(type, 7, 27, 26, 6);
+		poly.connect(type, 4, 24, 25, 5);
 		
-		poly.connect(12, 32, 33, 13);
-		poly.connect(15, 35, 34, 14);
-		poly.connect(16, 36, 37, 17);
-		poly.connect(19, 39, 38, 18);
+		poly.connect(type, 12, 32, 33, 13);
+		poly.connect(type, 15, 35, 34, 14);
+		poly.connect(type, 16, 36, 37, 17);
+		poly.connect(type, 19, 39, 38, 18);
 		
 		
 		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
@@ -122,18 +124,21 @@
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
-				
+				/*
 			poly.rotationX += thetaX
 			poly.rotationY += thetaY
-			poly.rotationZ += thetaZ
+			poly.rotationZ += thetaZ*/
 			poly.draw(n.node, camera);
 			
-			if( i >= 80) {
+			if( i >= 100) {
 				//n.stop();
 			}
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
+		/*
+			camera.y = e.clientY - e.target.offsetTop
+			camera.x = e.clientX - e.target.offsetLeft
 		return;
 			//n.clear();
 			poly.y = poly2.y = poly3.y = e.clientY - e.target.offsetTop
@@ -142,6 +147,7 @@
 			poly.y = e.clientY - e.target.offsetTop
 			poly.x = e.clientX - e.target.offsetLeft
 		return;
+		*/
 			poly.rotationX = ((n.width/2 - (e.clientY - e.target.offsetTop) - 50)/(n.width/2)) * Math.PI/4
 			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.height/2 - 50)/(n.height/2)) * Math.PI/4
 		}

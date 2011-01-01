@@ -172,7 +172,6 @@ function NPolygon () {
 	this._rotationY = 0;
 	this._rotationZ = 0;
 	this.connections = [];
-	this.connectionRanges = [];
 	
 	this.points = [];
 	this.visible = true;
@@ -216,21 +215,31 @@ function NPolygon () {
 		this._rotationZ = Math.ceil(value*1000)/1000;
 	});
 	
-	this.connectRange = function(first, last){
-		this.connectionRanges.push({first: first, last: last});
+	this.connectRange = function(type, first, last){
+		var connection = {type: type, nodes: []}, i = 0;
+		for	( i = first; i <= last; i++ ) {
+			connection.nodes.push(i);
+		}
+		
+		this.connections.push(connection);
 	};
-	this.connect = function(){
-		if( arguments.length < 2 ) {
+	this.connect = function(type){
+		if( arguments.length < 3 ) {
 			return
 		}
-		this.connections.push(arguments);
+		var connection = {type: type, nodes: []}, i = 0;
+		for	( i = 1; i <= arguments.length-1; i++ ) {
+			connection.nodes.push(arguments[i]);
+		}
+		
+		this.connections.push(connection);
 	};
 	
 	
 	this.draw = function(ctx, camera) {
 		var p = {};
 		for (index in this.points) {
-			p[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color});
+			p[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color, lineColor: this.points[index].lineColor});
 			p[index].rotateX(this.rotationX,this);
 			p[index].rotateY(this.rotationY,this);
 			p[index].rotateZ(this.rotationZ,this);
@@ -240,36 +249,18 @@ function NPolygon () {
 			//p[index].draw(ctx, camera);
 		}
 		
-		for (index in this.connectionRanges) {
-			var i = 0;
-			ctx.beginPath(); 
-			var p02d=  p[this.connectionRanges[index].first].get2d(camera)
-			ctx.moveTo(p02d.x, p02d.y);
-			for (i = this.connectionRanges[index].first; i < this.connectionRanges[index].last; i++) {
-				//p[i].lineTo(ctx, p[i+1], camera)
-			
-				var t1 = p[i].get2d(camera);
-				var t2 = p[i+1].get2d(camera);
-				if( !t1 || !t2 ) {
-					continue;
-				}
-		 
-				ctx.lineTo(t2.x, t2.y);
-			}
-			ctx.closePath();
-			ctx.fill();
-		}
-		
 		for (index in this.connections) {
 			var i = 0;
-			ctx.beginPath(); 
-			var p02d=  p[this.connections[index][0]].get2d(camera)
-			ctx.moveTo(p02d.x, p02d.y);
+			var p02d=  p[this.connections[index].nodes[0]].get2d(camera);
 			
-			for (i = 0; i < this.connections[index].length-1; i++) {
+			ctx.fillStyle = p[this.connections[index].nodes[0]].color;
+			ctx.strokeStyle = p[this.connections[index].nodes[0]].lineColor;
+			ctx.beginPath();
+			ctx.moveTo(p02d.x, p02d.y);
+			for (i = 0; i < this.connections[index].nodes.length-1; i++) {
 				//p[i].lineTo(ctx, p[i+1], camera)
-				var t1 = p[this.connections[index][i]].get2d(camera);
-				var t2 = p[this.connections[index][i+1]].get2d(camera);
+				var t1 = p[this.connections[index].nodes[i]].get2d(camera);
+				var t2 = p[this.connections[index].nodes[i+1]].get2d(camera);
 				if( !t1 || !t2 ) {
 					continue;
 				}
@@ -278,7 +269,8 @@ function NPolygon () {
 			}
 			
 			ctx.closePath();
-			ctx.fill();
+			ctx[this.connections[index].type].call(ctx)
+			//ctx.fill();
 		}
 		
 	}
