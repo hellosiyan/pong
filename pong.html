@@ -24,7 +24,7 @@
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 60});
+		var mainScene = new NScene({name: 'main', fps: 20});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -48,8 +48,9 @@
 		
 		var type = 'fill';
 		var color1 = 'black';
-		var color2 = '#55ff55'//'#ff3333';
-		var s = 30;
+		var color2 = '#c92424';
+		var color3 = '#666666';
+		var s = 100;
 		var points = [
 			// 2
 			new NPoint({x: -3.5*s, y: -2.5*s, z: 0, color: color1}),
@@ -81,7 +82,13 @@
 			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*1, color: points[index].color, lineColor: points[index].lineColor}));
 		}
 		
-		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: 0});
+		// floor
+		points.push(new NPoint({x: 4.5*s, y: 3*s, z: 2*s, color: color3, lineColor: color3}));
+		points.push(new NPoint({x: 4.5*s, y: 3*s, z: -2*s, color: color3, lineColor: color3}));
+		points.push(new NPoint({x: -4.5*s, y: 3*s, z: -2*s, color: color3, lineColor: color3}));
+		points.push(new NPoint({x: -4.5*s, y: 3*s, z: 2*s, color: color3, lineColor: color3}));
+		
+		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: -1000});
 		poly.setPoints(points);
 		// front
 		poly.connectRange(type, 0, 11);
@@ -89,6 +96,8 @@
 		
 		poly.connectRange(type, 12, 19);
 		poly.connectRange(type, 32, 39);
+		
+		poly.connectRange(type, 40, 43);
 		
 		// side
 		poly.connect(type, 0, 20, 31, 11);
@@ -116,28 +125,34 @@
 		poly.connect(type, 19, 39, 38, 18);
 		
 		
-		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
+		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 800, color: '#00ff00'});
 		
 		var theta = Math.PI/180;
-		var thetaX = 0*theta, thetaY = 1*theta, thetaZ = 0*theta;
+		var thetaX = 0*theta, thetaY = 0*theta, thetaZ = 0*theta;
 		var i = 0;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
-				/*
+			
 			poly.rotationX += thetaX
 			poly.rotationY += thetaY
-			poly.rotationZ += thetaZ*/
+			poly.rotationZ += thetaZ
 			poly.draw(n.node, camera);
 			
-			if( i >= 100) {
+			n.node.beginPath();
+			n.node.fillStyle = '#00ff00';
+			n.node.arc(camera.x, camera.y, 3, 0, Math.PI*2, true);
+			n.node.closePath();
+			n.node.fill();
+			
+			if( i >= 1) {
 				//n.stop();
 			}
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
-			poly.rotationX = ((n.height/2 - (e.clientY - e.target.offsetTop))/(n.height/2)) * Math.PI
-			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.width/2)/(n.width/2)) * Math.PI
+			poly.rotationX = ((n.height/2 - (e.clientY - e.target.offsetTop))/(n.height/2)) * Math.PI/2
+			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.width/2)/(n.width/2)) * Math.PI/2
 		}
 		
 		n.node.canvas.onmousedown = function(e) {
@@ -154,5 +169,5 @@
 	}
 	</script>
 </head>
-<body onload="init();"><h1></h1><canvas id="area" width="600" height="400">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
+<body onload="init();"><h1></h1><canvas id="area" width="800" height="600">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
 </html>

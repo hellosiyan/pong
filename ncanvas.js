@@ -171,6 +171,7 @@ function NPolygon () {
 	this._rotationX = 0;
 	this._rotationY = 0;
 	this._rotationZ = 0;
+	this.uuid = 0;
 	this.connections = [];
 	
 	this.points = [];
@@ -216,7 +217,7 @@ function NPolygon () {
 	});
 	
 	this.connectRange = function(type, first, last){
-		var connection = {type: type, nodes: []}, i = 0;
+		var connection = {type: type, id: this.uuid++, nodes: []}, i = 0;
 		for	( i = first; i <= last; i++ ) {
 			connection.nodes.push(i);
 		}
@@ -227,7 +228,7 @@ function NPolygon () {
 		if( arguments.length < 3 ) {
 			return
 		}
-		var connection = {type: type, nodes: []}, i = 0;
+		var connection = {type: type, id: this.uuid++, nodes: []}, i = 0;
 		for	( i = 1; i <= arguments.length-1; i++ ) {
 			connection.nodes.push(arguments[i]);
 		}
@@ -248,6 +249,59 @@ function NPolygon () {
 		for (index in p) {
 			//p[index].draw(ctx, camera);
 		}
+		
+		var minz = [];
+		var maxz = [];
+		var minx = [];
+		var maxx = [];
+		this.connections.sort(function(a, b) {
+			if( typeof minz[a.id] == 'undefined' ) {
+				minz[a.id] = p[a.nodes[0]].z;
+				maxz[a.id] = p[a.nodes[0]].z;
+				minx[a.id] = p[a.nodes[0]].x;
+				maxx[a.id] = p[a.nodes[0]].x;
+				for (index in a.nodes) {
+					minz[a.id] = Math.min(minz[a.id], p[a.nodes[index]].z);
+					maxz[a.id] = Math.max(maxz[a.id], p[a.nodes[index]].z);
+					minx[a.id] = Math.min(minx[a.id], p[a.nodes[index]].x);
+					maxx[a.id] = Math.max(maxx[a.id], p[a.nodes[index]].x);
+				}
+			}
+			if( typeof minz[b.id] == 'undefined' ) {
+				minz[b.id] = p[b.nodes[0]].z
+				maxz[b.id] = p[b.nodes[0]].z;
+				for (index in b.nodes) {
+					minz[b.id] = Math.min(minz[b.id], p[b.nodes[index]].z);
+					maxz[b.id] = Math.max(maxz[b.id], p[b.nodes[index]].z);
+				}
+			}
+			
+			if ( minz[a.id] > maxz[b.id] ) {
+				return 1;
+			} else if ( maxz[a.id] < minz[b.id] ) {
+				return -1
+			}
+			
+			
+			
+			/*
+			if( maxz[a.id] > maxz[b.id] ) {
+				return 1
+			} else if( maxz[a.id] < maxz[b.id] ) {
+				return -1;
+			} 
+			
+			if( minz[a.id] > minz[b.id] ) {
+				return 1
+			} else if( minz[a.id] < minz[b.id] ) {
+				return -1;
+			} 
+			*/
+			//console.log('eq!');
+			return 0;
+		});
+		delete minz;
+		delete maxz;
 		
 		for (index in this.connections) {
 			var i = 0;
