@@ -141,9 +141,9 @@ function NPoint () {
 		ctx.closePath();
 		ctx.fill();
 	}
-	this.lineTo = function(ctx, dest) {
-		var t2d = this.get2d(this.center);
-		var dest2d = dest.get2d(dest.center);
+	this.lineTo = function(ctx, dest, fc) {
+		var t2d = this.get2d(fc);
+		var dest2d = dest.get2d(fc);
 		if( !t2d || !dest2d ) {
 			return;
 		}
@@ -155,7 +155,7 @@ function NPoint () {
 		ctx.moveTo(t2d.x, t2d.y);  
 		ctx.lineTo(dest2d.x, dest2d.y);
 		ctx.closePath();
-		ctx.stroke();
+		ctx.fill();
 	}
 }
 NPoint.prototype = new NObject(); 
@@ -171,6 +171,7 @@ function NPolygon () {
 	this._rotationX = 0;
 	this._rotationY = 0;
 	this._rotationZ = 0;
+	this.connectionRanges = [];
 	
 	this.points = [];
 	this.visible = true;
@@ -214,15 +215,44 @@ function NPolygon () {
 		this._rotationZ = Math.ceil(value*1000)/1000;
 	});
 	
+	this.connectRange = function(first, last){
+		this.connectionRanges.push({first: first, last: last});
+	};
+	
 	
 	this.draw = function(ctx, camera) {
+		var p = {};
 		for (index in this.points) {
-			var tmp = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color});
-			tmp.rotateX(this.rotationX,this);
-			tmp.rotateY(this.rotationY,this);
-			tmp.rotateZ(this.rotationZ,this);
-			tmp.draw(ctx, camera);
+			p[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color});
+			p[index].rotateX(this.rotationX,this);
+			p[index].rotateY(this.rotationY,this);
+			p[index].rotateZ(this.rotationZ,this);
 		}
+		
+		for (index in p) {
+			p[index].draw(ctx, camera);
+		}
+		
+		for (index in this.connectionRanges) {
+			var i = 0;
+			ctx.beginPath(); 
+			var p02d=  p[this.connectionRanges[index].first].get2d(camera)
+			ctx.moveTo(p02d.x, p02d.y);  
+			for (i = this.connectionRanges[index].first; i < this.connectionRanges[index].last; i++) {
+				//p[i].lineTo(ctx, p[i+1], camera)
+			
+				var t1 = p[i].get2d(camera);
+				var t2 = p[i+1].get2d(camera);
+				if( !t1 || !t2 ) {
+					continue;
+				}
+		 
+				ctx.lineTo(t2.x, t2.y);
+			}
+			ctx.closePath();
+			ctx.fill();
+		}
+		
 	}
 }
 NPolygon.prototype = new NObject(); 
@@ -326,13 +356,10 @@ function NRect() {
 			return this;
 		}
 		var dz = vz/(vz-t.z)
-		console.log(dz);
 		t.x *= dz;
 		t.y *= dz;
 		t.w *= dz;
 		t.h *= dz;
-		console.log(t.x);
-		console.log('----');
 		ctx.fillStyle = this.fillColor;
 		ctx.globalAlpha = this.opacity;
 		ctx.fillRect(this.center.x - t.x, this.center.y - t.y, t.w, t.h);
