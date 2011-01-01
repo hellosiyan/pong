@@ -6,7 +6,7 @@
 	<style type="text/css" media="screen">
 	* { margin: 0; padding: 0; outline: 0; }
 	html, body { text-align: center; color: #4da612; }
-	h1 { height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
+	h1 { display: none }
 	a { color: white; text-decoration: none }
 	canvas { border: 1px solid #eee; cursor: crosshair; margin-top: 30px; }
 	p { height: 22px; margin-top: 30px; font-size:0; line-height: 0; text-indent: -4000px; }
@@ -24,7 +24,7 @@
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 20});
+		var mainScene = new NScene({name: 'main', fps: 60});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -46,9 +46,9 @@
 		
 		var stroke = '#4da612';
 		
-		var type = 'stroke';
+		var type = 'fill';
 		var color1 = 'black';
-		var color2 = '#ff3333';
+		var color2 = '#55ff55'//'#ff3333';
 		var s = 30;
 		var points = [
 			// 2
@@ -136,20 +136,8 @@
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
-		/*
-			camera.y = e.clientY - e.target.offsetTop
-			camera.x = e.clientX - e.target.offsetLeft
-		return;
-			//n.clear();
-			poly.y = poly2.y = poly3.y = e.clientY - e.target.offsetTop
-			poly.x = poly2.x = poly3.x = e.clientX - e.target.offsetLeft
-		return
-			poly.y = e.clientY - e.target.offsetTop
-			poly.x = e.clientX - e.target.offsetLeft
-		return;
-		*/
-			poly.rotationX = ((n.width/2 - (e.clientY - e.target.offsetTop) - 50)/(n.width/2)) * Math.PI/4
-			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.height/2 - 50)/(n.height/2)) * Math.PI/4
+			poly.rotationX = ((n.height/2 - (e.clientY - e.target.offsetTop))/(n.height/2)) * Math.PI
+			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.width/2)/(n.width/2)) * Math.PI
 		}
 		
 		n.node.canvas.onmousedown = function(e) {
@@ -166,5 +154,5 @@
 	}
 	</script>
 </head>
-<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
+<body onload="init();"><h1></h1><canvas id="area" width="600" height="400">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
 </html>
