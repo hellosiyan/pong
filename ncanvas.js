@@ -78,7 +78,7 @@ function NPoint () {
 	this.z = 0;
 	this.color = '#ffffff'
 	this.lineColor = '#ffffff'
-	this.radius = 4
+	this.radius = 10
 	this.visible = true;
 	NObject.call(this, arguments[0]);
 	
@@ -304,20 +304,6 @@ function NPolygon () {
 				}
 			}
 			
-			/*
-			if( maxz[a.id] > maxz[b.id] ) {
-				return 1
-			} else if( maxz[a.id] < maxz[b.id] ) {
-				return -1;
-			} 
-			
-			if( minz[a.id] > minz[b.id] ) {
-				return 1
-			} else if( minz[a.id] < minz[b.id] ) {
-				return -1;
-			} 
-			*/
-			//console.log('eq!');
 			return 0;
 		});
 		delete min;
@@ -332,7 +318,6 @@ function NPolygon () {
 			ctx.beginPath();
 			ctx.moveTo(p02d.x, p02d.y);
 			for (i = 0; i < this.connections[index].nodes.length-1; i++) {
-				//p[i].lineTo(ctx, p[i+1], camera)
 				var t1 = p[this.connections[index].nodes[i]].get2d(camera);
 				var t2 = p[this.connections[index].nodes[i+1]].get2d(camera);
 				if( !t1 || !t2 ) {
@@ -344,7 +329,6 @@ function NPolygon () {
 			
 			ctx.closePath();
 			ctx[this.connections[index].type].call(ctx)
-			//ctx.fill();
 		}
 		
 	}
