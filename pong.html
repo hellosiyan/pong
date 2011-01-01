@@ -54,9 +54,11 @@
 		
 //		stroke = '#ffffff';
 		var points = [
-			new NPoint({x: - 50, y: - 50, z: -50}),
-			new NPoint({x: + 50, y: - 50, z: -50}),
-			new NPoint({x: + 0, y: 0, z: 0, color: '#ff0000'}),
+			new NPoint({x: - 50, y: - 50, z: -25, color: '#D4A5A6'}),
+			new NPoint({x: + 50, y: - 50, z: -25, color: '#D4A5A6'}),
+			new NPoint({x: + 0, y: - 0, z: -25, color: '#901E1F'}),
+			new NPoint({x: - 50, y: + 50, z: -25, color: '#D4A5A6'}),
+			new NPoint({x: + 50, y: + 50, z: -25, color: '#D4A5A6'}),
 			/*new NPoint({x: - 10, y: - 30, z: 0}),
 			new NPoint({x: + 30, y: - 30, z: 0}),
 			new NPoint({x: - 10, y: - 10, z: 0}),
@@ -65,29 +67,28 @@
 			new NPoint({x: + 10, y: + 10, z: 0}),
 			new NPoint({x: - 30, y: + 30, z: 0}),
 			new NPoint({x: + 10, y: + 30, z: 0}),*/
-			new NPoint({x: - 50, y: + 50, z: -50}),
-			new NPoint({x: + 50, y: + 50, z: -50}),
 			
-			new NPoint({x: - 50, y: - 50, z: 50}),
-			new NPoint({x: + 50, y: - 50, z: 50}),
-			new NPoint({x: - 50, y: + 50, z: 50}),
-			new NPoint({x: + 50, y: + 50, z: 50}),
+			new NPoint({x: + 0, y: - 0, z: 25, color: '#4D901E'}),
+			new NPoint({x: - 50, y: - 50, z: 25, color: '#C4D4A5'}),
+			new NPoint({x: + 50, y: - 50, z: 25, color: '#C4D4A5'}),
+			new NPoint({x: - 50, y: + 50, z: 25, color: '#C4D4A5'}),
+			new NPoint({x: + 50, y: + 50, z: 25, color: '#C4D4A5'}),
 		];
 		
 		var poly = new NPolygon({x: camera.x, y: camera.y, z: -100});
 		poly.setPoints(points);
 		
 		var theta = Math.PI/60;
-		var thetaX = 0, thetaY = 0, thetaZ = 0;
+		var thetaX = 1*theta, thetaY = 1*theta, thetaZ = 1*theta;
 		var i = 0;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
 				
-			poly.rotationX += thetaX;
-			poly.rotationY += thetaY;
-			poly.rotationZ += thetaZ;
 			//poly.x += 1.2;
+			poly.rotationX += thetaX
+			poly.rotationY += thetaY
+			poly.rotationZ += thetaZ
 			poly.draw(n.node, camera);
 			//poly.z += 2;
 			/*
@@ -125,19 +126,16 @@
 		n.node.canvas.onmousemove = function(e) {
 			poly.y = e.clientY - e.target.offsetTop
 			poly.x = e.clientX - e.target.offsetLeft
+		return;
+			poly.rotationX = ((n.width/2 - (e.clientY - e.target.offsetTop) - 50)/(n.width/2)) * Math.PI/4
+			poly.rotationY = (((e.clientX - e.target.offsetLeft) - n.height/2 - 50)/(n.height/2)) * Math.PI/4
 		}
+		
 		n.node.canvas.onmousedown = function(e) {
-			if (thetaX == 0) {
-				thetaY = thetaZ = 0;
-				thetaX = theta;
-			} else if(thetaY = 0) {
-				thetaX = thetaZ = 0;
-				thetaY = theta;
-			} else {
-				thetaX = thetaY = 0;
-				thetaZ = theta;
-			}
+			poly.y = e.clientY - e.target.offsetTop
+			poly.x = e.clientX - e.target.offsetLeft
 		}
+		
 		n.node.canvas.onmousewheel = function(e) {
 			poly.z += 8 - 16*(e.wheelDelta < 0)
 			console.log(poly.z )

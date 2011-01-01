@@ -105,7 +105,7 @@ function NPoint () {
 		var cost = Math.cos(theta);
 		this.x = rc.x + d.x*cost + d.z*sint; 
 		this.y = rc.y + d.y; 
-		this.z = rc.z + d.x*sint + d.z*cost
+		this.z = rc.z - d.x*sint + d.z*cost
 	}
 	
 	this.rotateZ = function(theta, rc) {
@@ -122,7 +122,7 @@ function NPoint () {
 	}
 	
 	this.get2d = function (fc) {
-//		return this;
+		//return this;
 		var delta = fc.z/(fc.z-this.z);
 		if( fc.z < this.z ) {
 			return false;
