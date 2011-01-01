@@ -171,6 +171,7 @@ function NPolygon () {
 	this._rotationX = 0;
 	this._rotationY = 0;
 	this._rotationZ = 0;
+	this.connections = [];
 	this.connectionRanges = [];
 	
 	this.points = [];
@@ -218,6 +219,12 @@ function NPolygon () {
 	this.connectRange = function(first, last){
 		this.connectionRanges.push({first: first, last: last});
 	};
+	this.connect = function(){
+		if( arguments.length < 2 ) {
+			return
+		}
+		this.connections.push(arguments);
+	};
 	
 	
 	this.draw = function(ctx, camera) {
@@ -230,14 +237,14 @@ function NPolygon () {
 		}
 		
 		for (index in p) {
-			p[index].draw(ctx, camera);
+			//p[index].draw(ctx, camera);
 		}
 		
 		for (index in this.connectionRanges) {
 			var i = 0;
 			ctx.beginPath(); 
 			var p02d=  p[this.connectionRanges[index].first].get2d(camera)
-			ctx.moveTo(p02d.x, p02d.y);  
+			ctx.moveTo(p02d.x, p02d.y);
 			for (i = this.connectionRanges[index].first; i < this.connectionRanges[index].last; i++) {
 				//p[i].lineTo(ctx, p[i+1], camera)
 			
@@ -249,6 +256,27 @@ function NPolygon () {
 		 
 				ctx.lineTo(t2.x, t2.y);
 			}
+			ctx.closePath();
+			ctx.fill();
+		}
+		
+		for (index in this.connections) {
+			var i = 0;
+			ctx.beginPath(); 
+			var p02d=  p[this.connections[index][0]].get2d(camera)
+			ctx.moveTo(p02d.x, p02d.y);
+			
+			for (i = 0; i < this.connections[index].length-1; i++) {
+				//p[i].lineTo(ctx, p[i+1], camera)
+				var t1 = p[this.connections[index][i]].get2d(camera);
+				var t2 = p[this.connections[index][i+1]].get2d(camera);
+				if( !t1 || !t2 ) {
+					continue;
+				}
+		 
+				ctx.lineTo(t2.x, t2.y);
+			}
+			
 			ctx.closePath();
 			ctx.fill();
 		}

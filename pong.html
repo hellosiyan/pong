@@ -19,12 +19,12 @@
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
 		//n.autoClear = false;
-		n.node.globalAlpha = 0.5
+		n.node.globalAlpha = 1
 		n.node.fillColor = n.node.strokeColor = 'white';
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 50});
+		var mainScene = new NScene({name: 'main', fps: 60});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -46,7 +46,6 @@
 		
 		var stroke = '#4da612';
 		
-		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
 		
 		var color = 'black'
 		var s = 30;
@@ -75,10 +74,47 @@
 			new NPoint({x: 0.5*s, y: 2.5*s, z: 0, color: color}),
 		];
 		
-		var poly = new NPolygon({x: camera.x, y: camera.y, z: 0});
+		for	(index in points) {
+			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*0.5, color: color}));
+			points[index].z += s*0.5;
+		}
+		
+		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: 0});
 		poly.setPoints(points);
+		// front
 		poly.connectRange(0, 11);
+		poly.connectRange(20, 31);
+		
 		poly.connectRange(12, 19);
+		poly.connectRange(32, 39);
+		
+		// side
+		poly.connect(0, 20, 31, 11);
+		poly.connect(1, 21, 22, 2);
+		poly.connect(10, 30, 29, 9);
+		poly.connect(3, 23, 24, 4);
+		poly.connect(8, 28, 27, 7);
+		poly.connect(6, 26, 25, 5);
+		
+		poly.connect(12, 32, 39, 19);
+		poly.connect(13, 33, 34, 14);
+		poly.connect(17, 37, 38, 18);
+		poly.connect(15, 35, 36, 16);
+		// top
+		poly.connect(0, 20, 21, 1);
+		poly.connect(11, 31, 30, 10);
+		poly.connect(3, 23, 22, 2);
+		poly.connect(8, 28, 29, 9);
+		poly.connect(7, 27, 26, 6);
+		poly.connect(4, 24, 25, 5);
+		
+		poly.connect(12, 32, 33, 13);
+		poly.connect(15, 35, 34, 14);
+		poly.connect(16, 36, 37, 17);
+		poly.connect(19, 39, 38, 18);
+		
+		
+		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 300});
 		
 		var theta = Math.PI/180;
 		var thetaX = 0*theta, thetaY = 1*theta, thetaZ = 0*theta;
@@ -92,7 +128,7 @@
 			poly.rotationZ += thetaZ
 			poly.draw(n.node, camera);
 			
-			if( i >= 20) {
+			if( i >= 80) {
 				//n.stop();
 			}
 		});
@@ -116,11 +152,8 @@
 		}
 		
 		n.node.canvas.onmousewheel = function(e) {
-			n.clear();
 			var step = 8 - 16*(e.wheelDelta < 0);
 			poly.z += step
-			poly2.z += step
-			poly3.z += step
 		}
 		
 		n.play(mainScene, mainScene.fps);
