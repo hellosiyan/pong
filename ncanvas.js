@@ -249,7 +249,7 @@ function NPolygon () {
 		}
 		
 		for (index in p) {
-			//p[index].draw(ctx, camera);
+			p[index].draw(ctx, camera);
 		}
 		
 		var min = [];
@@ -298,7 +298,9 @@ function NPolygon () {
 			if( min[a.id].x < max[b.id].x && max[a.id].x > min[b.id].x ) {
 				// Test 2 - y axis collision
 				if( min[a.id].y < max[b.id].y && max[a.id].y > min[b.id].y ) {
-					return -1
+					var da = Math.sqrt( Math.pow(camera.x - (min[a.id].x + max[a.id].x)/2, 2) + Math.pow(camera.y - (min[a.id].y + max[a.id].y)/2, 2) + Math.pow(camera.z - (min[a.id].z + max[a.id].z)/2, 2) );
+					var db = Math.sqrt( Math.pow(camera.x - (min[b.id].x + max[b.id].x)/2, 2) + Math.pow(camera.y - (min[b.id].y + max[b.id].y)/2, 2) + Math.pow(camera.z - (min[b.id].z + max[b.id].z)/2, 2) );
+					return da - db;
 				}
 			}
 			

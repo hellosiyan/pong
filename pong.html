@@ -24,7 +24,7 @@
 		var score = 0;
 		var hits = 0;
 		
-		var mainScene = new NScene({name: 'main', fps: 1});
+		var mainScene = new NScene({name: 'main', fps: 30});
 		
 		var keys = {up: false, down: false, left: false, right: false};
 		window.onkeydown = function(e) {
@@ -50,7 +50,7 @@
 		var color1 = 'black';
 		var color2 = '#c92424';
 		var color3 = '#666666';
-		var s = 100;
+		var s = 200;
 		var points = [
 			// 2
 			new NPoint({x: -3.5*s, y: -2.5*s, z: 0, color: color1}),
@@ -83,11 +83,12 @@
 		}
 		
 		// floor
+		/*
 		points.push(new NPoint({x: 4.5*s, y: 3*s, z: 2*s, color: color3, lineColor: color3}));
 		points.push(new NPoint({x: 4.5*s, y: 3*s, z: -2*s, color: color3, lineColor: color3}));
 		points.push(new NPoint({x: -4.5*s, y: 3*s, z: -2*s, color: color3, lineColor: color3}));
 		points.push(new NPoint({x: -4.5*s, y: 3*s, z: 2*s, color: color3, lineColor: color3}));
-		
+		*/
 		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: -1000});
 		poly.setPoints(points);
 		// front
@@ -96,9 +97,9 @@
 		
 		poly.connectRange(type, 12, 19);
 		poly.connectRange(type, 32, 39);
-		
+		/*
 		poly.connectRange(type, 40, 43);
-		
+		*/
 		// side
 		poly.connect(type, 0, 20, 31, 11);
 		poly.connect(type, 1, 21, 22, 2);
