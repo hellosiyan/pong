@@ -91,13 +91,13 @@ function NPoint () {
 		this.z = rc.z + d.y*sint + d.z*cost;
 	}
 	
-	this.rotateY = function(theta) {
+	this.rotateY = function(theta, rc) {
+		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
 		var sint = Math.sin(theta);
 		var cost = Math.cos(theta);
-		var d = {x: this.x, y: this.y, z: this.z}
-		this.x = d.x*cost + d.z*sint; 
-		this.y = d.y; 
-		this.z = d.x*sint + d.z*cost
+		this.x = rc.x + d.x*cost + d.z*sint; 
+		this.y = rc.y + d.y; 
+		this.z = rc.z + d.x*sint + d.z*cost
 	}
 	
 	this.rotateZ = function(theta, rc) {
@@ -155,15 +155,22 @@ function NPolygon () {
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
-	this.geomCenter = new NPoint();
+	
+	this._rotationX = 0;
+	this._rotationY = 0;
+	this._rotationz = 0;
+	
 	this.points = [];
 	this.visible = true;
 	NObject.call(this, arguments[0]);
 	
-	this.addPoints = function (points) {
+	this.setPoints = function (points) {
+		this.points = points
+		return this;
+		/*
 		for (index in points) {
-			this.points[index] = new NPoint({x: this.geomCenter.x + points[index].x, y: this.geomCenter.y + points[index].y, z: this.geomCenter.z + points[index].z});
-		}
+			this.points[index] = new NPoint({x: this.x + points[index].x, y: this.y + points[index].y, z: this.z + points[index].z});
+		}*/
 	}
 	
 	this.rotateY = function(theta) {
@@ -172,13 +179,24 @@ function NPolygon () {
 		}
 	}
 	
+	this.__defineGetter__('rotationY', function(  ) {
+		return this._rotationY;
+	});
+	
+	this.__defineSetter__('rotationY', function( value ) {
+		while( value > Math.PI*2 ) {
+			value -= Math.PI*2;
+		}
+		this._rotationY = Math.ceil(value*1000)/1000;
+	});
+	
 	
 	this.draw = function(ctx, camera) {
-		console.log(this.points[0].x);
 		for (index in this.points) {
-			//var a = new NPoint({x: this.geomCenter.x + this.points[index].x, y: this.geomCenter.y + this.points[index].y, z: this.geomCenter.z + this.points[index].z});
-			//a.draw(ctx, camera);
-			this.points[index].draw(ctx, camera);
+			var a = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z});
+			a.rotateY(this.rotationY,this);
+			a.draw(ctx, camera);
+			//this.points[index].draw(ctx, camera);
 		}
 	}
 }

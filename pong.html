@@ -68,18 +68,16 @@
 			new NPoint({x: + 30, y: + 50, z: 0}),
 		];
 		
-		var poly = new NPolygon({x: camera.x, y: camera.y, z: 0});
-		poly.geomCenter = new NPoint({x: camera.x, y: camera.y, z: -100});
-		//poly.points = points;
-		poly.addPoints(points);
+		var poly = new NPolygon({x: camera.x, y: camera.y, z: -100});
+		poly.setPoints(points);
 		
-		var theta = Math.PI/180;
+		var theta = Math.PI/60;
 		var i = 0;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
 				
-			poly.rotateY(theta);
+			poly.rotationY += theta;
 			poly.draw(n.node, camera);
 			//poly.z += 2;
 			/*
