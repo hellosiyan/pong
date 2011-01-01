@@ -83,6 +83,10 @@ function NPoint () {
 	NObject.call(this, arguments[0]);
 	
 	this.rotateX = function(theta, rc) {
+		if( theta == 0 ) {
+			return;
+		}
+		
 		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
 		var sint = Math.sin(theta);
 		var cost = Math.cos(theta);
@@ -92,6 +96,10 @@ function NPoint () {
 	}
 	
 	this.rotateY = function(theta, rc) {
+		if( theta == 0 ) {
+			return;
+		}
+		
 		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
 		var sint = Math.sin(theta);
 		var cost = Math.cos(theta);
@@ -101,6 +109,10 @@ function NPoint () {
 	}
 	
 	this.rotateZ = function(theta, rc) {
+		if( theta == 0 ) {
+			return;
+		}
+		
 		var d = {x: this.x - rc.x, y: this.y - rc.y, z: this.z - rc.z};
 		var sint = Math.sin(theta);
 		var cost = Math.cos(theta);
@@ -158,7 +170,7 @@ function NPolygon () {
 	
 	this._rotationX = 0;
 	this._rotationY = 0;
-	this._rotationz = 0;
+	this._rotationZ = 0;
 	
 	this.points = [];
 	this.visible = true;
@@ -167,17 +179,18 @@ function NPolygon () {
 	this.setPoints = function (points) {
 		this.points = points
 		return this;
-		/*
-		for (index in points) {
-			this.points[index] = new NPoint({x: this.x + points[index].x, y: this.y + points[index].y, z: this.z + points[index].z});
-		}*/
 	}
 	
-	this.rotateY = function(theta) {
-		for (index in this.points) {
-			this.points[index].rotateY(theta);
+	this.__defineGetter__('rotationX', function(  ) {
+		return this._rotationX;
+	});
+	
+	this.__defineSetter__('rotationX', function( value ) {
+		while( value > Math.PI*2 ) {
+			value -= Math.PI*2;
 		}
-	}
+		this._rotationX = Math.ceil(value*1000)/1000;
+	});
 	
 	this.__defineGetter__('rotationY', function(  ) {
 		return this._rotationY;
@@ -190,13 +203,25 @@ function NPolygon () {
 		this._rotationY = Math.ceil(value*1000)/1000;
 	});
 	
+	this.__defineGetter__('rotationZ', function(  ) {
+		return this._rotationZ;
+	});
+	
+	this.__defineSetter__('rotationZ', function( value ) {
+		while( value > Math.PI*2 ) {
+			value -= Math.PI*2;
+		}
+		this._rotationZ = Math.ceil(value*1000)/1000;
+	});
+	
 	
 	this.draw = function(ctx, camera) {
 		for (index in this.points) {
-			var a = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z});
-			a.rotateY(this.rotationY,this);
-			a.draw(ctx, camera);
-			//this.points[index].draw(ctx, camera);
+			var tmp = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color});
+			tmp.rotateX(this.rotationX,this);
+			tmp.rotateY(this.rotationY,this);
+			tmp.rotateZ(this.rotationZ,this);
+			tmp.draw(ctx, camera);
 		}
 	}
 }

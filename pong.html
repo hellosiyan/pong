@@ -54,30 +54,40 @@
 		
 //		stroke = '#ffffff';
 		var points = [
-			new NPoint({x: - 30, y: - 50, z: 0}),
-			new NPoint({x: + 30, y: - 50, z: 0}),
-			new NPoint({x: - 10, y: - 30, z: 0}),
+			new NPoint({x: - 50, y: - 50, z: -50}),
+			new NPoint({x: + 50, y: - 50, z: -50}),
+			new NPoint({x: + 0, y: 0, z: 0, color: '#ff0000'}),
+			/*new NPoint({x: - 10, y: - 30, z: 0}),
 			new NPoint({x: + 30, y: - 30, z: 0}),
 			new NPoint({x: - 10, y: - 10, z: 0}),
 			new NPoint({x: + 30, y: - 10, z: 0}),
 			new NPoint({x: - 30, y: + 10, z: 0}),
 			new NPoint({x: + 10, y: + 10, z: 0}),
 			new NPoint({x: - 30, y: + 30, z: 0}),
-			new NPoint({x: + 10, y: + 30, z: 0}),
-			new NPoint({x: - 30, y: + 50, z: 0}),
-			new NPoint({x: + 30, y: + 50, z: 0}),
+			new NPoint({x: + 10, y: + 30, z: 0}),*/
+			new NPoint({x: - 50, y: + 50, z: -50}),
+			new NPoint({x: + 50, y: + 50, z: -50}),
+			
+			new NPoint({x: - 50, y: - 50, z: 50}),
+			new NPoint({x: + 50, y: - 50, z: 50}),
+			new NPoint({x: - 50, y: + 50, z: 50}),
+			new NPoint({x: + 50, y: + 50, z: 50}),
 		];
 		
 		var poly = new NPolygon({x: camera.x, y: camera.y, z: -100});
 		poly.setPoints(points);
 		
 		var theta = Math.PI/60;
+		var thetaX = 0, thetaY = 0, thetaZ = 0;
 		var i = 0;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
 				
-			poly.rotationY += theta;
+			poly.rotationX += thetaX;
+			poly.rotationY += thetaY;
+			poly.rotationZ += thetaZ;
+			//poly.x += 1.2;
 			poly.draw(n.node, camera);
 			//poly.z += 2;
 			/*
@@ -107,10 +117,31 @@
 			n.node.fill();
 			*/
 			// r.z -= 1 - 3*keys.up;
-			if( i >= 120) {
-				n.stop();
+			if( i >= 320) {
+				//n.stop();
 			}
 		});
+		
+		n.node.canvas.onmousemove = function(e) {
+			poly.y = e.clientY - e.target.offsetTop
+			poly.x = e.clientX - e.target.offsetLeft
+		}
+		n.node.canvas.onmousedown = function(e) {
+			if (thetaX == 0) {
+				thetaY = thetaZ = 0;
+				thetaX = theta;
+			} else if(thetaY = 0) {
+				thetaX = thetaZ = 0;
+				thetaY = theta;
+			} else {
+				thetaX = thetaY = 0;
+				thetaZ = theta;
+			}
+		}
+		n.node.canvas.onmousewheel = function(e) {
+			poly.z += 8 - 16*(e.wheelDelta < 0)
+			console.log(poly.z )
+		}
 		
 		n.play(mainScene, mainScene.fps);
 	}
