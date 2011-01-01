@@ -239,50 +239,68 @@ function NPolygon () {
 	
 	this.draw = function(ctx, camera) {
 		var p = {};
+		var p2 = {};
 		for (index in this.points) {
 			p[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color, lineColor: this.points[index].lineColor});
 			p[index].rotateX(this.rotationX,this);
 			p[index].rotateY(this.rotationY,this);
 			p[index].rotateZ(this.rotationZ,this);
+			p2[index] = p[index].get2d(camera);
 		}
 		
 		for (index in p) {
 			//p[index].draw(ctx, camera);
 		}
 		
-		var minz = [];
-		var maxz = [];
-		var minx = [];
-		var maxx = [];
+		var min = [];
+		var max = [];
 		this.connections.sort(function(a, b) {
-			if( typeof minz[a.id] == 'undefined' ) {
-				minz[a.id] = p[a.nodes[0]].z;
-				maxz[a.id] = p[a.nodes[0]].z;
-				minx[a.id] = p[a.nodes[0]].x;
-				maxx[a.id] = p[a.nodes[0]].x;
+			if( typeof min[a.id] == 'undefined' ) {
+				min[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z}
+				max[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z}
 				for (index in a.nodes) {
-					minz[a.id] = Math.min(minz[a.id], p[a.nodes[index]].z);
-					maxz[a.id] = Math.max(maxz[a.id], p[a.nodes[index]].z);
-					minx[a.id] = Math.min(minx[a.id], p[a.nodes[index]].x);
-					maxx[a.id] = Math.max(maxx[a.id], p[a.nodes[index]].x);
+					min[a.id] = {
+						x: Math.min(min[a.id].x, p2[a.nodes[index]].x), 
+						y: Math.min(min[a.id].y, p2[a.nodes[index]].y), 
+						z: Math.min(min[a.id].z, p[a.nodes[index]].z), 
+					};
+					max[a.id] = {
+						x: Math.max(max[a.id].x, p2[a.nodes[index]].x), 
+						y: Math.max(max[a.id].y, p2[a.nodes[index]].y), 
+						z: Math.max(max[a.id].z, p[a.nodes[index]].z), 
+					};
 				}
 			}
-			if( typeof minz[b.id] == 'undefined' ) {
-				minz[b.id] = p[b.nodes[0]].z
-				maxz[b.id] = p[b.nodes[0]].z;
+			if( typeof min[b.id] == 'undefined' ) {
+				min[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z}
+				max[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z}
 				for (index in b.nodes) {
-					minz[b.id] = Math.min(minz[b.id], p[b.nodes[index]].z);
-					maxz[b.id] = Math.max(maxz[b.id], p[b.nodes[index]].z);
+					min[b.id] = {
+						x: Math.min(min[b.id].x, p2[b.nodes[index]].x), 
+						y: Math.min(min[b.id].y, p2[b.nodes[index]].y), 
+						z: Math.min(min[b.id].z, p[b.nodes[index]].z), 
+					};
+					max[b.id] = {
+						x: Math.max(max[b.id].x, p2[b.nodes[index]].x), 
+						y: Math.max(max[b.id].y, p2[b.nodes[index]].y), 
+						z: Math.max(max[b.id].z, p[b.nodes[index]].z), 
+					};
 				}
 			}
 			
-			if ( minz[a.id] > maxz[b.id] ) {
+			if ( min[a.id].z > max[b.id].z ) {
 				return 1;
-			} else if ( maxz[a.id] < minz[b.id] ) {
+			} else if ( max[a.id].z < min[b.id].z ) {
 				return -1
 			}
 			
-			
+			// Test 1 - x axis collision
+			if( min[a.id].x < max[b.id].x && max[a.id].x > min[b.id].x ) {
+				// Test 2 - y axis collision
+				if( min[a.id].y < max[b.id].y && max[a.id].y > min[b.id].y ) {
+					return -1
+				}
+			}
 			
 			/*
 			if( maxz[a.id] > maxz[b.id] ) {
@@ -300,8 +318,8 @@ function NPolygon () {
 			//console.log('eq!');
 			return 0;
 		});
-		delete minz;
-		delete maxz;
+		delete min;
+		delete max;
 		
 		for (index in this.connections) {
 			var i = 0;
