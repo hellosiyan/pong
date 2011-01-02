@@ -30,6 +30,18 @@ function NObject() {
 	}	
 }
 
+/* NStyle */
+function NStyle() {
+	this.color = '#999'; // Polygons, Points
+	this.lineColor = '#999'; // Polygons, Points
+	this.fillType = 'stroke'; // Polygons, Points
+	this.skeleton = false; // Polygons
+	this.radius = 3; // Points
+	NObject.call(this, arguments[0]);
+}
+NStyle.prototype = new NObject();
+NStyle.prototype.constructor = NStyle;
+
 /* NEvent */
 function NEvent() {
 	this.canvas = null;
@@ -76,9 +88,7 @@ function NPoint () {
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
-	this.color = '#ffffff'
-	this.lineColor = '#ffffff'
-	this.radius = 10
+	this.style = new NStyle();
 	this.visible = true;
 	NObject.call(this, arguments[0]);
 	
@@ -122,7 +132,6 @@ function NPoint () {
 	}
 	
 	this.get2d = function (fc) {
-		//return this;
 		var delta = fc.z/(fc.z-this.z);
 		if( fc.z < this.z ) {
 			return false;
@@ -136,8 +145,8 @@ function NPoint () {
 		}
 		
 		ctx.beginPath();
-		ctx.fillStyle = this.color;
-		ctx.arc(t2d.x, t2d.y, t2d.radius, 0, Math.PI*2, true);
+		ctx.fillStyle = this.style.color;
+		ctx.arc(t2d.x, t2d.y, this.style.radius, 0, Math.PI*2, true);
 		ctx.closePath();
 		ctx.fill();
 	}
@@ -149,8 +158,8 @@ function NPoint () {
 		}
 		
 		ctx.beginPath();  
-		ctx.strokeStyle = this.lineColor;
-		ctx.lineWidth = (t2d.radius*2 + dest2d.radius*2)/2
+		ctx.strokeStyle = this.style.lineColor;
+		ctx.lineWidth = (this.style.radius*2 + dest.style.radius*2)/2
 		ctx.lineJoin = 'round'
 		ctx.moveTo(t2d.x, t2d.y);  
 		ctx.lineTo(dest2d.x, dest2d.y);
@@ -171,6 +180,8 @@ function NPolygon () {
 	this._rotationX = 0;
 	this._rotationY = 0;
 	this._rotationZ = 0;
+	
+	this.style = new NStyle();
 	this.uuid = 0;
 	this.connections = [];
 	
@@ -216,19 +227,19 @@ function NPolygon () {
 		this._rotationZ = Math.ceil(value*1000)/1000;
 	});
 	
-	this.connectRange = function(type, first, last){
-		var connection = {type: type, id: this.uuid++, nodes: []}, i = 0;
+	this.connectRange = function(style, first, last){
+		var connection = {style: style, id: this.uuid++, nodes: []}, i = 0;
 		for	( i = first; i <= last; i++ ) {
 			connection.nodes.push(i);
 		}
 		
 		this.connections.push(connection);
 	};
-	this.connect = function(type){
+	this.connect = function(style){
 		if( arguments.length < 3 ) {
 			return
 		}
-		var connection = {type: type, id: this.uuid++, nodes: []}, i = 0;
+		var connection = {style: style, id: this.uuid++, nodes: []}, i = 0;
 		for	( i = 1; i <= arguments.length-1; i++ ) {
 			connection.nodes.push(arguments[i]);
 		}
@@ -236,62 +247,61 @@ function NPolygon () {
 		this.connections.push(connection);
 	};
 	
-	
 	this.draw = function(ctx, camera) {
-		var p = {};
-		var p2 = {};
+		var p2 = []; // 2d point projections
 		for (index in this.points) {
-			p[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, color: this.points[index].color, lineColor: this.points[index].lineColor});
-			p[index].rotateX(this.rotationX,this);
-			p[index].rotateY(this.rotationY,this);
-			p[index].rotateZ(this.rotationZ,this);
-			p2[index] = p[index].get2d(camera);
+			p2[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, style: this.points[index].style});
+			p2[index].rotateX(this.rotationX,this);
+			p2[index].rotateY(this.rotationY,this);
+			p2[index].rotateZ(this.rotationZ,this);
+			p2[index] = p2[index].get2d(camera);
+			p2[index].style = this.points[index].style;
+			p2[index].z = this.z + this.points[index].z;
+			
+			
+			if( this.style.skeleton ) {
+				ctx.beginPath();
+				ctx.fillStyle = p2[index].style.color;
+				ctx.arc(p2[index].x, p2[index].y, p2[index].style.radius, 0, Math.PI*2, true);
+				ctx.closePath();
+				ctx.fill();
+			}
+			
 		}
 		
-		for (index in p) {
-			//p[index].draw(ctx, camera);
-		}
 		
 		var min = [];
 		var max = [];
 		this.connections.sort(function(a, b) {
 			if( typeof min[a.id] == 'undefined' ) {
-				min[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z, ox: p[a.nodes[0]].x, oy: p[a.nodes[0]].y}
-				max[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z, ox: p[a.nodes[0]].x, oy: p[a.nodes[0]].y}
+				min[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p2[a.nodes[0]].z}
+				max[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p2[a.nodes[0]].z}
 				for (index in a.nodes) {
 					min[a.id] = {
 						x: Math.min(min[a.id].x, p2[a.nodes[index]].x), 
 						y: Math.min(min[a.id].y, p2[a.nodes[index]].y), 
-						z: Math.min(min[a.id].z, p[a.nodes[index]].z), 
-						ox: Math.min(min[a.id].ox, p[a.nodes[index]].x), 
-						oy: Math.min(min[a.id].oy, p[a.nodes[index]].y), 
+						z: Math.min(min[a.id].z, p2[a.nodes[index]].z), 
 					};
 					max[a.id] = {
 						x: Math.max(max[a.id].x, p2[a.nodes[index]].x), 
 						y: Math.max(max[a.id].y, p2[a.nodes[index]].y), 
-						z: Math.max(max[a.id].z, p[a.nodes[index]].z), 
-						ox: Math.max(max[a.id].ox, p[a.nodes[index]].x), 
-						oy: Math.max(max[a.id].oy, p[a.nodes[index]].y), 
+						z: Math.max(max[a.id].z, p2[a.nodes[index]].z),  
 					};
 				}
 			}
 			if( typeof min[b.id] == 'undefined' ) {
-				min[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z, ox: p[b.nodes[0]].x, oy: p[b.nodes[0]].y}
-				max[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z, ox: p[b.nodes[0]].x, oy: p[b.nodes[0]].y}
+				min[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p2[b.nodes[0]].z}
+				max[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p2[b.nodes[0]].z}
 				for (index in b.nodes) {
 					min[b.id] = {
 						x: Math.min(min[b.id].x, p2[b.nodes[index]].x), 
 						y: Math.min(min[b.id].y, p2[b.nodes[index]].y), 
-						z: Math.min(min[b.id].z, p[b.nodes[index]].z), 
-						ox: Math.min(min[b.id].ox, p[b.nodes[index]].x), 
-						oy: Math.min(min[b.id].oy, p[b.nodes[index]].y), 
+						z: Math.min(min[b.id].z, p2[b.nodes[index]].z), 
 					};
 					max[b.id] = {
 						x: Math.max(max[b.id].x, p2[b.nodes[index]].x), 
 						y: Math.max(max[b.id].y, p2[b.nodes[index]].y), 
-						z: Math.max(max[b.id].z, p[b.nodes[index]].z), 
-						ox: Math.max(max[b.id].ox, p[b.nodes[index]].x), 
-						oy: Math.max(max[b.id].oy, p[b.nodes[index]].y), 
+						z: Math.max(max[b.id].z, p2[b.nodes[index]].z), 
 					};
 				}
 			}
@@ -302,22 +312,15 @@ function NPolygon () {
 				return -1
 			}
 			
+			/*
 			// Test 1 - x axis collision
 			if( min[a.id].x < max[b.id].x && max[a.id].x > min[b.id].x ) {
 				// Test 2 - y axis collision
 				if( min[a.id].y < max[b.id].y && max[a.id].y > min[b.id].y ) {
-					// check entire overlap
-					return 0;
-				
-					/*
-					var da = Math.sqrt( Math.pow(camera.x - (min[a.id].ox + max[a.id].ox)/2, 2) + Math.pow(camera.y - (min[a.id].oy + max[a.id].oy)/2, 2) );
-					var db = Math.sqrt( Math.pow(camera.x - (min[b.id].ox + max[b.id].ox)/2, 2) + Math.pow(camera.y - (min[b.id].oy + max[b.id].oy)/2, 2) );
-					*/
-					var dax = Math.min(Math.abs(camera.x - min[a.id].x), Math.abs(camera.x - max[a.id].x));
-					var dbx = Math.min(Math.abs(camera.x - min[b.id].x), Math.abs(camera.x - max[b.id].x));
-					return dax - dbx;
+					// here be dragons
 				}
 			}
+			*/
 			
 			return 0;
 		});
@@ -325,25 +328,25 @@ function NPolygon () {
 		delete max;
 		
 		for (index in this.connections) {
-			var i = 0;
-			var p02d=  p[this.connections[index].nodes[0]].get2d(camera);
-			
-			ctx.fillStyle = p[this.connections[index].nodes[0]].color;
-			ctx.strokeStyle = p[this.connections[index].nodes[0]].lineColor;
+			ctx.fillStyle = this.connections[index].style.color;
+			ctx.strokeStyle = this.connections[index].style.lineColor;
 			ctx.beginPath();
-			ctx.moveTo(p02d.x, p02d.y);
-			for (i = 0; i < this.connections[index].nodes.length-1; i++) {
-				var t1 = p[this.connections[index].nodes[i]].get2d(camera);
-				var t2 = p[this.connections[index].nodes[i+1]].get2d(camera);
-				if( !t1 || !t2 ) {
+			ctx.moveTo(p2[this.connections[index].nodes[0]].x, p2[this.connections[index].nodes[0]].y);
+			for (var i = 0; i < this.connections[index].nodes.length-1; i++) {
+				var t = p2[this.connections[index].nodes[i+1]];
+				if( !t ) {
 					continue;
 				}
 		 
-				ctx.lineTo(t2.x, t2.y);
+				ctx.lineTo(t.x, t.y);
 			}
 			
 			ctx.closePath();
-			ctx[this.connections[index].type].call(ctx)
+			if( this.style.skeleton ) {
+				ctx.stroke()
+			} else {
+				ctx[this.connections[index].style.fillType].call(ctx)			
+			}
 		}
 		
 	}
@@ -443,19 +446,9 @@ function NRect() {
 	this.fillColor = '#fff';
 	NDrawable.call(this, arguments[0])
 	this.draw = function(ctx) {
-		var t = {x: this.center.x - this.x, y: this.center.y - this.y, z: this.z, w: this.width, h: this.height};
-		var vz = 50; // http://en.wikipedia.org/wiki/3D_projection BZ
-		if( t.z >= vz ) {
-			return this;
-		}
-		var dz = vz/(vz-t.z)
-		t.x *= dz;
-		t.y *= dz;
-		t.w *= dz;
-		t.h *= dz;
 		ctx.fillStyle = this.fillColor;
 		ctx.globalAlpha = this.opacity;
-		ctx.fillRect(this.center.x - t.x, this.center.y - t.y, t.w, t.h);
+		ctx.fillRect(this.x, this.y, this.width, this.height);
 		return this;
 	}
 }
@@ -548,6 +541,7 @@ function NCanvas() {
 	};
 	this.stop = function() {
 		clearInterval(interval);
+		return this;
 	};
 }
 NCanvas.prototype = new NObject();
