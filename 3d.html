@@ -139,6 +139,12 @@
 			anim.z = Math.min(Math.max(anim.z + step*200, -5000), -2000);
 			return false;
 		}
+		// No one likes you, Firefox
+		n.node.canvas.addEventListener('DOMMouseScroll', function(e) {
+			var step = 1 - 2*(e.detail < 0);
+			anim.z = Math.min(Math.max(anim.z + step*200, -5000), -2000);
+			e.preventDefault();
+		}, false)
 		
 		$$('speed-slow').onmousedown = function() { n.play(mainScene, 10); return false; }
 		$$('speed-normal').onmousedown = function() { n.play(mainScene, 30); return false; }
