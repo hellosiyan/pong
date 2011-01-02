@@ -8,31 +8,28 @@
 	<style type="text/css" media="screen">
 	* { margin: 0; padding: 0; outline: 0; }
 	html, body { text-align: center; color: #444; background: #f3f3f3; font-family: courier; height: 100%; user-select: none; -webkit-user-select: none; -moz-user-select: -moz-none; }
-	#page { width: 802px; margin: 0 auto; height: auto !important;min-height: 100%; }
-	canvas { border: 1px solid #ddd; cursor: crosshair; margin-top: 30px; margin-bottom: 10px }
-	a { color: white; text-decoration: none }
+	a { color: white; text-decoration: none; margin: 3px; padding: 0 6px; }
 	p { text-align: left; padding-bottom: 10px }
-	p a { margin: 3px; padding: 0 6px; }
+	canvas { border: 1px solid #ddd; cursor: crosshair; margin-top: 30px; margin-bottom: 10px }
 	.left { float: left; }
 	.right { float: right; }
+	#page { width: 802px; margin: 0 auto; height: auto !important; min-height: 100%; }
 	#page:after { content: "."; visibility: hidden; display: block; height: 0; line-height: 0; font-size: 0; clear: both; }
 	#speed-slow { color: #d33d2e; }
 	#speed-normal { color: #f3dd2f; }
 	#speed-high { color: #53bb44; }
 	</style>
 	
-	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
-	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-3d.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
+	window.$$ = function(id) { return window.document.getElementById(id) };
 	
 	function init() {
-		var $$ = function(id) { return window.document.getElementById(id) };
 		var n = $$("area").getNCanvas();
-		//n.autoClear = false;
-		n.node.globalAlpha = 1
 		
-		var mainScene = new NScene({name: 'main', fps: 40});
-		var stroke = '#4da612';
+		var mainScene = new NScene({name: 'main', fps: 60});
+		
+		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 800});
 		
 		var style_2 = new NStyle({color: '#000', lineColor: '#000', fillType: 'stroke'});
 		var style_c = new NStyle({color: '#c92424', lineColor: '#c92424', fillType: 'stroke'});
@@ -67,12 +64,12 @@
 		
 		for	(index in points) {
 			points[index].z += s*0.5;
-			points[index].lineColor = points[index].color;
 			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*1, style: points[index].style}));
 		}
 		
 		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: -3000});
 		poly.setPoints(points);
+		
 		// front
 		poly.connectRange(style_2_front, 0, 11);
 		poly.connectRange(style_2, 20, 31);
@@ -92,6 +89,7 @@
 		poly.connect(style_c, 13, 33, 34, 14);
 		poly.connect(style_c, 17, 37, 38, 18);
 		poly.connect(style_c, 15, 35, 36, 16);
+		
 		// top
 		poly.connect(style_2, 0, 20, 21, 1);
 		poly.connect(style_2, 11, 31, 30, 10);
@@ -105,14 +103,10 @@
 		poly.connect(style_c, 16, 36, 37, 17);
 		poly.connect(style_c, 19, 39, 38, 18);
 		
-		
-		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 800, color: '#6FAC24'});
-		
-		var k = 0.1;
 		var anim = {x: poly.x, y: poly.y, z: poly.z, rx: 0, ry: 0, rz: poly.rotationZ};
+		var k = 0.1;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
-			
 			poly.rotationX += (anim.rx - poly.rotationX)*k
 			poly.rotationY += (anim.ry - poly.rotationY)*k
 			poly.rotationZ += (anim.rz - poly.rotationZ)*k
@@ -120,7 +114,7 @@
 			poly.y += (anim.y - poly.y)*k
 			poly.z += (anim.z - poly.z)*k
 			
-			poly.draw(n.node, camera);
+			poly.draw(e.canvas.node, camera);
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
@@ -146,9 +140,9 @@
 			return false;
 		}
 		
-		$$('speed-slow').onmousedown = function() { n.stop().play(mainScene, 10); return false; }
-		$$('speed-normal').onmousedown = function() { n.stop().play(mainScene, 30); return false; }
-		$$('speed-high').onmousedown = function() { n.stop().play(mainScene, 60); return false; }
+		$$('speed-slow').onmousedown = function() { n.play(mainScene, 10); return false; }
+		$$('speed-normal').onmousedown = function() { n.play(mainScene, 30); return false; }
+		$$('speed-high').onmousedown = function() { n.play(mainScene, 60); return false; }
 		
 		n.play(mainScene, mainScene.fps);
 	}

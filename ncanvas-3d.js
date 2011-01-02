@@ -228,8 +228,8 @@ function NPolygon () {
 	});
 	
 	this.connectRange = function(style, first, last){
-		var connection = {style: style, id: this.uuid++, nodes: []}, i = 0;
-		for	( i = first; i <= last; i++ ) {
+		var connection = {style: style, id: this.uuid++, nodes: []};
+		for	( var i = first; i <= last; i++ ) {
 			connection.nodes.push(i);
 		}
 		
@@ -239,8 +239,8 @@ function NPolygon () {
 		if( arguments.length < 3 ) {
 			return
 		}
-		var connection = {style: style, id: this.uuid++, nodes: []}, i = 0;
-		for	( i = 1; i <= arguments.length-1; i++ ) {
+		var connection = {style: style, id: this.uuid++, nodes: []};
+		for	( var i = 1; i <= arguments.length-1; i++ ) {
 			connection.nodes.push(arguments[i]);
 		}
 		
@@ -251,13 +251,12 @@ function NPolygon () {
 		var p2 = []; // 2d point projections
 		for (index in this.points) {
 			p2[index] = new NPoint({x: this.x + this.points[index].x, y: this.y + this.points[index].y, z: this.z + this.points[index].z, style: this.points[index].style});
-			p2[index].rotateX(this.rotationX,this);
-			p2[index].rotateY(this.rotationY,this);
-			p2[index].rotateZ(this.rotationZ,this);
+			p2[index].rotateX(this._rotationX, this);
+			p2[index].rotateY(this._rotationY, this);
+			p2[index].rotateZ(this._rotationZ, this);
 			p2[index] = p2[index].get2d(camera);
 			p2[index].style = this.points[index].style;
 			p2[index].z = this.z + this.points[index].z;
-			
 			
 			if( this.style.skeleton ) {
 				ctx.beginPath();
@@ -266,7 +265,6 @@ function NPolygon () {
 				ctx.closePath();
 				ctx.fill();
 			}
-			
 		}
 		
 		
