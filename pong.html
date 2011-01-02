@@ -21,7 +21,7 @@
 		//n.autoClear = false;
 		n.node.globalAlpha = 1
 		
-		var mainScene = new NScene({name: 'main', fps: 60});
+		var mainScene = new NScene({name: 'main', fps: 30});
 		var stroke = '#4da612';
 		
 		var type = 'stroke';
@@ -103,7 +103,7 @@
 		var i = 0;
 		var k = 0.1;
 		var anim = {x: poly.x, y: poly.y, z: poly.z, rx: 0, ry: 0, rz: poly.rotationZ};
-		var wobble = false;
+		var wobble = -1;
 		
 		mainScene.addListener('onEnterFrame', function(e) {
 			i++;
@@ -123,16 +123,17 @@
 		});
 		
 		n.node.canvas.onmousemove = function(e) {
-			anim.rx = ((n.height/2 - (e.clientY - e.target.offsetTop))/(n.height/2)) * Math.PI/6 - wobble*Math.PI
-			anim.ry = (((e.clientX - e.target.offsetLeft) - n.width/2)/(n.width/2)) * Math.PI/6  - wobble*Math.PI
-			anim.rz = wobble*Math.PI
+			anim.rx = ((n.height/2 - (e.clientY - e.target.offsetTop))/(n.height/2)) * Math.PI/2
+			anim.ry = (((e.clientX - e.target.offsetLeft) - n.width/2)/(n.width/2)) * Math.PI/2
 			
-			anim.y = e.clientY - e.target.offsetTop
-			anim.x = e.clientX - e.target.offsetLeft
+			//anim.y = e.clientY - e.target.offsetTop
+			//anim.x = e.clientX - e.target.offsetLeft
 		}
 		
 		n.node.canvas.onmousedown = function(e) {
-			wobble = !wobble;
+			wobble *= -1;
+			poly.x = anim.x =  n.width/2 + wobble*700
+			return;
 			n.node.canvas.onmousemove(e);
 		}
 		

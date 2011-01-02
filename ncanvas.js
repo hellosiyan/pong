@@ -249,41 +249,49 @@ function NPolygon () {
 		}
 		
 		for (index in p) {
-			p[index].draw(ctx, camera);
+			//p[index].draw(ctx, camera);
 		}
 		
 		var min = [];
 		var max = [];
 		this.connections.sort(function(a, b) {
 			if( typeof min[a.id] == 'undefined' ) {
-				min[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z}
-				max[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z}
+				min[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z, ox: p[a.nodes[0]].x, oy: p[a.nodes[0]].y}
+				max[a.id] = {x: p2[a.nodes[0]].x, y: p2[a.nodes[0]].y, z: p[a.nodes[0]].z, ox: p[a.nodes[0]].x, oy: p[a.nodes[0]].y}
 				for (index in a.nodes) {
 					min[a.id] = {
 						x: Math.min(min[a.id].x, p2[a.nodes[index]].x), 
 						y: Math.min(min[a.id].y, p2[a.nodes[index]].y), 
 						z: Math.min(min[a.id].z, p[a.nodes[index]].z), 
+						ox: Math.min(min[a.id].ox, p[a.nodes[index]].x), 
+						oy: Math.min(min[a.id].oy, p[a.nodes[index]].y), 
 					};
 					max[a.id] = {
 						x: Math.max(max[a.id].x, p2[a.nodes[index]].x), 
 						y: Math.max(max[a.id].y, p2[a.nodes[index]].y), 
 						z: Math.max(max[a.id].z, p[a.nodes[index]].z), 
+						ox: Math.max(max[a.id].ox, p[a.nodes[index]].x), 
+						oy: Math.max(max[a.id].oy, p[a.nodes[index]].y), 
 					};
 				}
 			}
 			if( typeof min[b.id] == 'undefined' ) {
-				min[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z}
-				max[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z}
+				min[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z, ox: p[b.nodes[0]].x, oy: p[b.nodes[0]].y}
+				max[b.id] = {x: p2[b.nodes[0]].x, y: p2[b.nodes[0]].y, z: p[b.nodes[0]].z, ox: p[b.nodes[0]].x, oy: p[b.nodes[0]].y}
 				for (index in b.nodes) {
 					min[b.id] = {
 						x: Math.min(min[b.id].x, p2[b.nodes[index]].x), 
 						y: Math.min(min[b.id].y, p2[b.nodes[index]].y), 
 						z: Math.min(min[b.id].z, p[b.nodes[index]].z), 
+						ox: Math.min(min[b.id].ox, p[b.nodes[index]].x), 
+						oy: Math.min(min[b.id].oy, p[b.nodes[index]].y), 
 					};
 					max[b.id] = {
 						x: Math.max(max[b.id].x, p2[b.nodes[index]].x), 
 						y: Math.max(max[b.id].y, p2[b.nodes[index]].y), 
 						z: Math.max(max[b.id].z, p[b.nodes[index]].z), 
+						ox: Math.max(max[b.id].ox, p[b.nodes[index]].x), 
+						oy: Math.max(max[b.id].oy, p[b.nodes[index]].y), 
 					};
 				}
 			}
@@ -298,9 +306,16 @@ function NPolygon () {
 			if( min[a.id].x < max[b.id].x && max[a.id].x > min[b.id].x ) {
 				// Test 2 - y axis collision
 				if( min[a.id].y < max[b.id].y && max[a.id].y > min[b.id].y ) {
-					var da = Math.sqrt( Math.pow(camera.x - (min[a.id].x + max[a.id].x)/2, 2) + Math.pow(camera.y - (min[a.id].y + max[a.id].y)/2, 2) + Math.pow(camera.z - (min[a.id].z + max[a.id].z)/2, 2) );
-					var db = Math.sqrt( Math.pow(camera.x - (min[b.id].x + max[b.id].x)/2, 2) + Math.pow(camera.y - (min[b.id].y + max[b.id].y)/2, 2) + Math.pow(camera.z - (min[b.id].z + max[b.id].z)/2, 2) );
-					return da - db;
+					// check entire overlap
+					return 0;
+				
+					/*
+					var da = Math.sqrt( Math.pow(camera.x - (min[a.id].ox + max[a.id].ox)/2, 2) + Math.pow(camera.y - (min[a.id].oy + max[a.id].oy)/2, 2) );
+					var db = Math.sqrt( Math.pow(camera.x - (min[b.id].ox + max[b.id].ox)/2, 2) + Math.pow(camera.y - (min[b.id].oy + max[b.id].oy)/2, 2) );
+					*/
+					var dax = Math.min(Math.abs(camera.x - min[a.id].x), Math.abs(camera.x - max[a.id].x));
+					var dbx = Math.min(Math.abs(camera.x - min[b.id].x), Math.abs(camera.x - max[b.id].x));
+					return dax - dbx;
 				}
 			}
 			
