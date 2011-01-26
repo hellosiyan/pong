@@ -20,6 +20,7 @@
 	#speed-high { color: #53bb44; }
 	</style>
 	
+	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-3d.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
 	window.$$ = function(id) { return window.document.getElementById(id) };
@@ -29,7 +30,7 @@
 		
 		var mainScene = new NScene({name: 'main', fps: 60});
 		
-		var camera = new NPoint({x: n.width/2, y: n.height/2, z: 800});
+		var camera = new N3Point({x: n.width/2, y: n.height/2, z: 800});
 		
 		var style_2 = new NStyle({color: '#000', lineColor: '#000', fillType: 'stroke'});
 		var style_c = new NStyle({color: '#c92424', lineColor: '#c92424', fillType: 'stroke'});
@@ -39,35 +40,35 @@
 		var s = 200;
 		var points = [
 			// 2
-			new NPoint({x: -3.5*s, y: -2.5*s, z: 0, style: style_2}),
-			new NPoint({x: -1.5*s, y: -2.5*s, z: 0, style: style_2}),
-			new NPoint({x: -1.5*s, y: -0.5*s, z: 0, style: style_2}),
-			new NPoint({x: -3.5*s, y: -0.5*s, z: 0, style: style_2}),
-			new NPoint({x: -3.5*s, y: 2.5*s, z: 0, style: style_2}),
-			new NPoint({x: -0.5*s, y: 2.5*s, z: 0, style: style_2}),
-			new NPoint({x: -0.5*s, y: 1.5*s, z: 0, style: style_2}),
-			new NPoint({x: -2.5*s, y: 1.5*s, z: 0, style: style_2}),
-			new NPoint({x: -2.5*s, y: 0.5*s, z: 0, style: style_2}),
-			new NPoint({x: -0.5*s, y: 0.5*s, z: 0, style: style_2}),
-			new NPoint({x: -0.5*s, y: -1.5*s, z: 0, style: style_2}),
-			new NPoint({x: -3.5*s, y: -1.5*s, z: 0, style: style_2}),
+			new N3Point({x: -3.5*s, y: -2.5*s, z: 0, style: style_2}),
+			new N3Point({x: -1.5*s, y: -2.5*s, z: 0, style: style_2}),
+			new N3Point({x: -1.5*s, y: -0.5*s, z: 0, style: style_2}),
+			new N3Point({x: -3.5*s, y: -0.5*s, z: 0, style: style_2}),
+			new N3Point({x: -3.5*s, y: 2.5*s, z: 0, style: style_2}),
+			new N3Point({x: -0.5*s, y: 2.5*s, z: 0, style: style_2}),
+			new N3Point({x: -0.5*s, y: 1.5*s, z: 0, style: style_2}),
+			new N3Point({x: -2.5*s, y: 1.5*s, z: 0, style: style_2}),
+			new N3Point({x: -2.5*s, y: 0.5*s, z: 0, style: style_2}),
+			new N3Point({x: -0.5*s, y: 0.5*s, z: 0, style: style_2}),
+			new N3Point({x: -0.5*s, y: -1.5*s, z: 0, style: style_2}),
+			new N3Point({x: -3.5*s, y: -1.5*s, z: 0, style: style_2}),
 			// c
-			new NPoint({x: 0.5*s, y: -1.5*s, z: 0, style: style_c}),
-			new NPoint({x: 3.5*s, y: -1.5*s, z: 0, style: style_c}),
-			new NPoint({x: 3.5*s, y: -0.5*s, z: 0, style: style_c}),
-			new NPoint({x: 1.5*s, y: -0.5*s, z: 0, style: style_c}),
-			new NPoint({x: 1.5*s, y: 1.5*s, z: 0, style: style_c}),
-			new NPoint({x: 3.5*s, y: 1.5*s, z: 0, style: style_c}),
-			new NPoint({x: 3.5*s, y: 2.5*s, z: 0, style: style_c}),
-			new NPoint({x: 0.5*s, y: 2.5*s, z: 0, style: style_c}),
+			new N3Point({x: 0.5*s, y: -1.5*s, z: 0, style: style_c}),
+			new N3Point({x: 3.5*s, y: -1.5*s, z: 0, style: style_c}),
+			new N3Point({x: 3.5*s, y: -0.5*s, z: 0, style: style_c}),
+			new N3Point({x: 1.5*s, y: -0.5*s, z: 0, style: style_c}),
+			new N3Point({x: 1.5*s, y: 1.5*s, z: 0, style: style_c}),
+			new N3Point({x: 3.5*s, y: 1.5*s, z: 0, style: style_c}),
+			new N3Point({x: 3.5*s, y: 2.5*s, z: 0, style: style_c}),
+			new N3Point({x: 0.5*s, y: 2.5*s, z: 0, style: style_c}),
 		];
 		
 		for	(index in points) {
 			points[index].z += s*0.5;
-			points.push(new NPoint({x: points[index].x, y: points[index].y, z: points[index].z - s*1, style: points[index].style}));
+			points.push(new N3Point({x: points[index].x, y: points[index].y, z: points[index].z - s*1, style: points[index].style}));
 		}
 		
-		var poly = new NPolygon({x: n.width/2, y: n.height/2, z: -3000});
+		var poly = new N3Polygon({x: n.width/2, y: n.height/2, z: -3000});
 		poly.setPoints(points);
 		
 		// front
