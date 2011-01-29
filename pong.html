@@ -63,7 +63,7 @@
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
-		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7};
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -5, accY: 0, accMax: 7};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
 		
@@ -84,8 +84,7 @@
 		
 		loseScene.addListener('onEnterFrame', function(e) {
 			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
-			bar_pc.style.opacity = (bar_pc.style.opacity-0.04 < 0)?0:bar_pc.style.opacity - 0.04;
-			bar_player.style.opacity = (bar_player.style.opacity-0.03 < 0)?0:bar_player.style.opacity - 0.03;
+			bar_pc.style.opacity = bar_player.style.opacity = (bar_player.style.opacity-0.03 < 0)?0:bar_player.style.opacity - 0.03;
 			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
 			if( ball.style.opacity <= 0 && bar_pc.style.opacity <= 0 && bar_player.style.opacity <= 0 && separator.style.opacity <= 0 ) {
 				status.text = 'Play Again?';
@@ -126,16 +125,14 @@
 			} else if( bar_player.ny + bar_player.height > n.height ) {
 				bar_player.ny = n.height - bar_player.height
 			}
-			bar_player.y = bar_player.ny;
-			
-			// Position bar_pc
-			bar_pc.y += bar_pc.accY;
-			if(bar_pc.y < 0) {
-				bar_pc.y = 0
-			} else if( bar_pc.y + bar_pc.height > n.height ) {
-				bar_pc.y = n.height - bar_pc.height
+			if ( ball.accX > 0 ) {
+				bar_player.y = bar_player.ny;
+				bar_pc.y = bar_player.ny;
+			} else {
+				bar_pc.y = bar_player.ny;
+				bar_player.y = bar_player.ny;
 			}
-		
+					
 			// Position ball
 			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
 			
@@ -145,29 +142,12 @@
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
-					ball.accMax += 0.2;
+					ball.accMax += 0.1;
 					bar_player.height -= 0.2;
 				}
 				hits ++;
 				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
 				board.text = 'score: ' + score;
-				
-				// Animate bar_pc
-				var frames = Math.ceil(Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX));
-				var endY = ball.y;
-				var endAccY = ball.accY;
-				for (var i=0; i < frames; i++) {
-					if ( endY + ball.height + endAccY > e.canvas.height ) {
-						endY -= endAccY - (e.canvas.height - endY - ball.height)
-						endAccY *= -1
-					} else if(endY + endAccY < 0) {
-						endY -= endY + endAccY;
-						endAccY *= -1;
-					} else {
-						endY += endAccY;
-					}
-				}
-				bar_pc.accY = (endY + ball.height/2 + (0.5 - Math.random())*((bar_pc.height - 10)/2) - (bar_pc.y + bar_pc.height/2))/frames;
 			} else if(ball.x > bar_player.x) {
 				e.preventDefault();
 				n.play(loseScene);
@@ -177,8 +157,16 @@
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = Math.cos(coeffY)*ball.accMax;
 				
-				var frames = Math.floor(Math.abs((ball.x + ball.width - bar_player.x)/ball.accX));
-				bar_pc.accY = (e.canvas.height/2 - bar_pc.height/2 - bar_pc.y)/frames;
+				if( ball.accMax < 14 ) {
+					ball.accMax += 0.1;
+					bar_pc.height -= 0.2;
+				}
+				hits ++;
+				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
+				board.text = 'score: ' + score;
+			} else if(ball.x < bar_pc.x + bar_pc.width ) {
+				e.preventDefault();
+				n.play(loseScene);
 			} else {
 				ball.x += ball.accX;
 			}
