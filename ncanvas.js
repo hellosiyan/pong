@@ -29,6 +29,7 @@ function NStyle() {
 	this.fillType = 'stroke'; // Polygons, Points
 	this.skeleton = false; // Polygons
 	this.radius = 3; // Points
+	this.opacity = 1; // Polygons, Points
 	NObject.call(this, arguments[0]);
 }
 NStyle.prototype = new NObject();
@@ -99,12 +100,10 @@ NPoint.prototype.constructor = NPoint;
 function NDrawable() {
 	this.x = 0;
 	this.y = 0;
-	this.z = 0;
 	this.width = 1;
 	this.height = 1;
-	this.center = new NPoint();
-	this.opacity = 1;
 	this.visible = true;
+	this.style = new NStyle();
 	NEventDispatcher.call(this, arguments[0])
 	this.draw = function(){};
 	this.containsPoint = function(point) {
@@ -171,9 +170,9 @@ function NBounce (ndrawable) {
 
 function NFadeOut(ndrawable, speed) {
 	function fadeOut(e) {
-		ndrawable.opacity -= 0.1;
-		if ( this.opacity < 0 ) {
-			this.opacity = 1;
+		ndrawable.style.opacity -= 0.1;
+		if ( this.style.opacity < 0 ) {
+			this.style.opacity = 1;
 			this.visible = false;
 			ndrawable.removeListener('onEnterFrame', fadeOut);
 		}
@@ -184,11 +183,10 @@ function NFadeOut(ndrawable, speed) {
 
 /* NRect */
 function NRect() {
-	this.fillColor = '#fff';
 	NDrawable.call(this, arguments[0])
 	this.draw = function(ctx) {
-		ctx.fillStyle = this.fillColor;
-		ctx.globalAlpha = this.opacity;
+		ctx.fillStyle = this.style.color;
+		ctx.globalAlpha = this.style.opacity;
 		ctx.fillRect(this.x, this.y, this.width, this.height);
 		return this;
 	}
@@ -198,14 +196,12 @@ NRect.prototype.constructor = NRect;
 
 /* NCircle */
 function NCircle() {
-	this.fillColor = '#fff';
-	this.radius = 10;
 	NDrawable.call(this, arguments[0])
 	this.draw = function(ctx) {
-		ctx.fillStyle = this.fillColor;
-		ctx.globalAlpha = this.opacity;
+		ctx.fillStyle = this.style.color;
+		ctx.globalAlpha = this.style.opacity;
 		ctx.beginPath();
-		ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2, true);
+		ctx.arc(this.x, this.y, this.style.radius, 0, Math.PI*2, true);
 		ctx.closePath();
 		ctx.fill();
 		return this;
@@ -235,6 +231,7 @@ NContainer.prototype.constructor = NContainer;
 /* NScene */
 function NScene() {
 	this.name = 'scene0';
+	this.fps = 20;
 	NContainer.call(this, arguments[0]);
 }
 NScene.prototype = new NContainer();
@@ -268,7 +265,7 @@ function NCanvas() {
 	}
 	this.play = function(scene, fps) {
 		this.scene = scene ? scene : this.scene;
-		this.fps = fps ? fps : this.fps;
+		this.fps = fps ? fps : scene.fps;
 		if ( interval != null) {
 			this.stop();
 		}
