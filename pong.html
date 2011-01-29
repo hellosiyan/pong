@@ -1,0 +1,206 @@
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>Canvas</title>
+	
+	<style type="text/css" media="screen">
+	* { margin: 0; padding: 0; outline: 0; }
+	html, body { background: black; text-align: center; color: #4da612; }
+	h1 { background: url(pong.gif) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
+	a { color: white; text-decoration: none }
+	canvas { border-top: 1px solid #4da612; border-bottom: 1px solid #4da612; cursor: crosshair; margin-top: 30px; }
+	p { height: 22px; margin-top: 30px; background: url(footer.gif) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
+	</style>
+	
+	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script type="text/javascript" language="javascript" charset="utf-8">
+	
+	function init() {
+		var n = document.getElementById("area").getNCanvas();
+		var score = 0;
+		var hits = 0;
+		
+		var gameScene = new NScene({name: 'game', fps: 50});
+		var loseScene = new NScene({name: 'lose', fps: 25});
+		var startScene = new NScene({name: 'start', fps: 2});
+		
+		var board_style = new NStyle({color: '#4da612', opacity: 0.8});
+		var board = new NText({y:10, text: 'Score: 123', width: 15, height: 15, style: board_style, visible: false});
+		board.x = n.width/2 - board.textWidth()/2;
+		board.set({shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor:'#4da612'});
+		board.addTo(gameScene, loseScene, startScene);
+		
+		var separator_style = new NStyle({color: '#4da612'});
+		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
+		separator.addTo(gameScene, loseScene, startScene);
+		
+		var bar_pc_style = new NStyle({color: '#4da612'});
+		var bar_pc = new NRect();
+		var bar_pc_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: bar_pc_style, accY: 0};
+		bar_pc.set(bar_pc_defaults);
+		bar_pc.addTo(gameScene, loseScene, startScene);
+		
+		var keys = {up: false, down: false};
+		window.onkeydown = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = true; break;
+				case 40: keys.down = true; break;
+			}
+		}
+		window.onkeyup = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = false; break;
+				case 40: keys.down = false; break;
+			}
+		}
+		
+		var bar_player = new NRect({ny: n.height/2 - 30});
+		var bar_player_style = new NStyle({color: '#4da612'});
+		var bar_player_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: bar_player_style};
+		bar_player.set(bar_player_defaults);
+		bar_player.addTo(gameScene, loseScene, startScene);
+		
+		var ball = new NRect();
+		var ball_style = new NStyle({color: '#4da612'});
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7};
+		ball.set(ball_defaults);
+		ball.addTo(gameScene, loseScene, startScene);
+		
+		var status_style = new NStyle({color: '#4da612'});
+		var status = new NText({y: n.height/2 - 9, width: 20, height: 20, text: 'Click to start!', style: status_style});
+		status.x = n.width/2 - status.textWidth()/2;
+		status.addTo(gameScene, loseScene, startScene);
+		
+		status.shadowOffsetX = 0;
+		status.shadowOffsetY = 0;
+		status.shadowBlur    = 8;
+		status.shadowColor   = '#4da612';
+		
+		ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
+		startScene.addListener('onEnterFrame', function(e) {
+			status.style.opacity = status.style.opacity<=0.5 ? 1:0.5;
+		});
+		
+		loseScene.addListener('onEnterFrame', function(e) {
+			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
+			bar_pc.style.opacity = (bar_pc.style.opacity-0.04 < 0)?0:bar_pc.style.opacity - 0.04;
+			bar_player.style.opacity = (bar_player.style.opacity-0.03 < 0)?0:bar_player.style.opacity - 0.03;
+			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
+			if( ball.style.opacity <= 0 && bar_pc.style.opacity <= 0 && bar_player.style.opacity <= 0 && separator.style.opacity <= 0 ) {
+				status.text = 'Play Again?';
+				status.x = n.width/2 - status.textWidth()/2;
+				resetGame();
+				e.preventDefault();
+			}
+		});
+		
+		n.node.canvas.onmouseup = function() {
+			if ( n.scene.name == 'start') {
+				n.stop();
+				status.visible = false;
+				board.visible = true;
+				score = hits = 0;
+				board.text = 'score: 0';
+				ball.visible = bar_pc.visible = bar_player.visible = separator.visible = true;
+				n.play(gameScene);
+			}
+		}
+		
+		function resetGame() {
+			status.visible = true;
+			ball.set(ball_defaults).style.opacity = 1;
+			bar_pc.set(bar_pc_defaults).style.opacity = 1;
+			bar_player.set(bar_player_defaults).style.opacity = 1;
+			separator.style.opacity = 1;
+			ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
+			n.play(startScene);
+		}
+		
+		gameScene.addListener('onEnterFrame', function(e) {
+			// Position bar_player
+			if(keys.up) bar_player.ny -= 10;
+			if(keys.down) bar_player.ny += 10;
+			if(bar_player.ny < 0) {
+				bar_player.ny = 0
+			} else if( bar_player.ny + bar_player.height > n.height ) {
+				bar_player.ny = n.height - bar_player.height
+			}
+			bar_player.y = bar_player.ny;
+			
+			// Position bar_pc
+			bar_pc.y += bar_pc.accY;
+			if(bar_pc.y < 0) {
+				bar_pc.y = 0
+			} else if( bar_pc.y + bar_pc.height > n.height ) {
+				bar_pc.y = n.height - bar_pc.height
+			}
+		
+			// Position ball
+			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
+			
+			if ( ball.x + ball.accX + ball.width >= bar_player.x && ball.intersects(bar_player)) {
+				var coeffY = (((bar_player.y + bar_player.height/2) - (newPosition.y + newPosition.height/2)) / (bar_player.height/2))*(Math.PI/4);
+				ball.x = bar_player.x - ball.width;
+				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
+				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
+				if( ball.accMax < 14 ) {
+					ball.accMax += 0.2;
+					bar_player.height -= 0.2;
+				}
+				hits ++;
+				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
+				board.text = 'score: ' + score;
+				
+				// Animate bar_pc
+				var frames = Math.ceil(Math.abs((ball.x - (bar_pc.x + bar_pc.width))/ball.accX));
+				var endY = ball.y;
+				var endAccY = ball.accY;
+				for (var i=0; i < frames; i++) {
+					if ( endY + ball.height + endAccY > e.canvas.height ) {
+						endY -= endAccY - (e.canvas.height - endY - ball.height)
+						endAccY *= -1
+					} else if(endY + endAccY < 0) {
+						endY -= endY + endAccY;
+						endAccY *= -1;
+					} else {
+						endY += endAccY;
+					}
+				}
+				bar_pc.accY = (endY + ball.height/2 + (0.5 - Math.random())*((bar_pc.height - 10)/2) - (bar_pc.y + bar_pc.height/2))/frames;
+			} else if(ball.x > bar_player.x) {
+				e.preventDefault();
+				n.play(loseScene);
+			} else if( ball.x + ball.accX <= bar_pc.x + bar_pc.width && ball.intersects(bar_pc) ) {
+				var coeffY = (((bar_pc.y + bar_pc.height/2) - (ball.y + ball.height/2)) / (bar_pc.height/2))*(Math.PI/4);
+				ball.x = bar_pc.x + bar_pc.width;
+				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
+				ball.accX = Math.cos(coeffY)*ball.accMax;
+				
+				var frames = Math.floor(Math.abs((ball.x + ball.width - bar_player.x)/ball.accX));
+				bar_pc.accY = (e.canvas.height/2 - bar_pc.height/2 - bar_pc.y)/frames;
+			} else {
+				ball.x += ball.accX;
+			}
+			
+			if ( ball.y + ball.height + ball.accY > e.canvas.height ) {
+				ball.y -= ball.accY - (e.canvas.height - ball.y - ball.height)
+				ball.accY *= -1
+			} else if(ball.y + ball.accY < 0) {
+				ball.y -= ball.y + ball.accY;
+				ball.accY *= -1;
+			} else {
+				ball.y += ball.accY;
+			}
+		});
+		
+		n.node.canvas.onmousemove = function(e) {
+			bar_player.ny = e.clientY - e.target.offsetTop - bar_player.height/2
+		}
+		
+		n.play(startScene);
+	}
+	</script>
+</head>
+<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
+</html>
