@@ -25,21 +25,7 @@
 		var loseScene = new NScene({name: 'lose', fps: 25});
 		var startScene = new NScene({name: 'start', fps: 2});
 		
-		var board_style = new NStyle({color: '#4da612', opacity: 0.8});
-		var board = new NText({y:10, text: 'Score: 123', width: 15, height: 15, style: board_style, visible: false});
-		board.x = n.width/2 - board.textWidth()/2;
-		board.set({shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor:'#4da612'});
-		board.addTo(gameScene, loseScene, startScene);
-		
-		var separator_style = new NStyle({color: '#4da612'});
-		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
-		separator.addTo(gameScene, loseScene, startScene);
-		
-		var bar_pc_style = new NStyle({color: '#4da612'});
-		var bar_pc = new NRect();
-		var bar_pc_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: bar_pc_style, accY: 0};
-		bar_pc.set(bar_pc_defaults);
-		bar_pc.addTo(gameScene, loseScene, startScene);
+		/* Basic Keyboard IO */
 		
 		var keys = {up: false, down: false};
 		window.onkeydown = function(e) {
@@ -55,15 +41,33 @@
 			}
 		}
 		
-		var bar_player = new NRect({ny: n.height/2 - 30});
-		var bar_player_style = new NStyle({color: '#4da612'});
-		var bar_player_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: bar_player_style};
-		bar_player.set(bar_player_defaults);
-		bar_player.addTo(gameScene, loseScene, startScene);
+		/* Setup objects  */
+		
+		var board_style = new NStyle({color: '#4da612', opacity: 0.8});
+		var board = new NText({y:10, text: 'Score: 123', width: 15, height: 15, style: board_style, visible: false});
+		board.x = n.width/2 - board.textWidth()/2;
+		board.set({shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor:'#4da612'});
+		board.addTo(gameScene, loseScene, startScene);
+		
+		var separator_style = new NStyle({color: '#4da612'});
+		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
+		separator.addTo(gameScene, loseScene, startScene);
+		
+		var pad_left_style = new NStyle({color: '#4da612'});
+		var pad_left = new NRect();
+		var pad_left_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: pad_left_style, accY: 0};
+		pad_left.set(pad_left_defaults);
+		pad_left.addTo(gameScene, loseScene, startScene);
+		
+		var pad_right = new NRect({ny: n.height/2 - 30});
+		var pad_right_style = new NStyle({color: '#4da612'});
+		var pad_right_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: pad_right_style};
+		pad_right.set(pad_right_defaults);
+		pad_right.addTo(gameScene, loseScene, startScene);
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
-		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -5, accY: 0, accMax: 7};
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
 		
@@ -77,16 +81,34 @@
 		status.shadowBlur    = 8;
 		status.shadowColor   = '#4da612';
 		
-		ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
+		ball.visible = pad_left.visible = pad_right.visible = separator.visible = false;
 		startScene.addListener('onEnterFrame', function(e) {
 			status.style.opacity = status.style.opacity<=0.5 ? 1:0.5;
 		});
 		
+		/* Game-related functions */
+		
+		function resetGame() {
+			status.visible = true;
+			ball.set(ball_defaults).style.opacity = 1;
+			pad_left.set(pad_left_defaults).style.opacity = 1;
+			pad_right.set(pad_right_defaults).style.opacity = 1;
+			separator.style.opacity = 1;
+			ball.visible = pad_left.visible = pad_right.visible = separator.visible = false;
+			n.play(startScene);
+		}
+		
+		function calculateScore(hits, accuracy) {
+			return Math.ceil( hits * ((Math.PI/4 - Math.abs(accuracy))/(Math.PI/4)));
+		}
+		
+		/* NCanvas Event Listeners */
+		
 		loseScene.addListener('onEnterFrame', function(e) {
 			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
-			bar_pc.style.opacity = bar_player.style.opacity = (bar_player.style.opacity-0.03 < 0)?0:bar_player.style.opacity - 0.03;
+			pad_left.style.opacity = pad_right.style.opacity = (pad_right.style.opacity-0.03 < 0)?0:pad_right.style.opacity - 0.03;
 			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
-			if( ball.style.opacity <= 0 && bar_pc.style.opacity <= 0 && bar_player.style.opacity <= 0 && separator.style.opacity <= 0 ) {
+			if( ball.style.opacity <= 0 && pad_left.style.opacity <= 0 && pad_right.style.opacity <= 0 && separator.style.opacity <= 0 ) {
 				status.text = 'Play Again?';
 				status.x = n.width/2 - status.textWidth()/2;
 				resetGame();
@@ -94,77 +116,55 @@
 			}
 		});
 		
-		n.node.canvas.onmouseup = function() {
-			if ( n.scene.name == 'start') {
-				n.stop();
-				status.visible = false;
-				board.visible = true;
-				score = hits = 0;
-				board.text = 'score: 0';
-				ball.visible = bar_pc.visible = bar_player.visible = separator.visible = true;
-				n.play(gameScene);
-			}
-		}
-		
-		function resetGame() {
-			status.visible = true;
-			ball.set(ball_defaults).style.opacity = 1;
-			bar_pc.set(bar_pc_defaults).style.opacity = 1;
-			bar_player.set(bar_player_defaults).style.opacity = 1;
-			separator.style.opacity = 1;
-			ball.visible = bar_pc.visible = bar_player.visible = separator.visible = false;
-			n.play(startScene);
-		}
-		
 		gameScene.addListener('onEnterFrame', function(e) {
-			// Position bar_player
-			if(keys.up) bar_player.ny -= 10;
-			if(keys.down) bar_player.ny += 10;
-			if(bar_player.ny < 0) {
-				bar_player.ny = 0
-			} else if( bar_player.ny + bar_player.height > n.height ) {
-				bar_player.ny = n.height - bar_player.height
-			}
-			if ( ball.accX > 0 ) {
-				bar_player.y = bar_player.ny;
-				bar_pc.y = bar_player.ny;
-			} else {
-				bar_pc.y = bar_player.ny;
-				bar_player.y = bar_player.ny;
-			}
-					
-			// Position ball
-			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
+			/* Position pad_right */
 			
-			if ( ball.x + ball.accX + ball.width >= bar_player.x && ball.intersects(bar_player)) {
-				var coeffY = (((bar_player.y + bar_player.height/2) - (newPosition.y + newPosition.height/2)) / (bar_player.height/2))*(Math.PI/4);
-				ball.x = bar_player.x - ball.width;
+			if(keys.up) pad_right.ny -= 10;
+			if(keys.down) pad_right.ny += 10;
+			if(pad_right.ny < 0) {
+				pad_right.ny = 0
+			} else if( pad_right.ny + pad_right.height > n.height ) {
+				pad_right.ny = n.height - pad_right.height
+			}
+			pad_left.y = pad_right.y = pad_right.ny;
+					
+			/* Position ball */
+			
+			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX};
+			
+			if ( ball.x + ball.accX + ball.width >= pad_right.x && ball.intersects(pad_right)) {
+				/* Right pad hit */
+				var coeffY = (((pad_right.y + pad_right.height/2) - (newPosition.y + ball.height/2)) / (pad_right.height/2))*(Math.PI/4);
+				ball.x = pad_right.x - ball.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					bar_player.height -= 0.2;
+					pad_right.height -= 0.2;
 				}
 				hits ++;
-				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
+				score += calculateScore(hits, coeffY)
 				board.text = 'score: ' + score;
-			} else if(ball.x > bar_player.x) {
+			} else if(ball.x > pad_right.x) {
+				/* Right pad missed */
 				e.preventDefault();
 				n.play(loseScene);
-			} else if( ball.x + ball.accX <= bar_pc.x + bar_pc.width && ball.intersects(bar_pc) ) {
-				var coeffY = (((bar_pc.y + bar_pc.height/2) - (ball.y + ball.height/2)) / (bar_pc.height/2))*(Math.PI/4);
-				ball.x = bar_pc.x + bar_pc.width;
+			} else if( ball.x + ball.accX <= pad_left.x + pad_left.width && ball.intersects(pad_left) ) {
+				/* Left pad hit */
+				var coeffY = (((pad_left.y + pad_left.height/2) - (newPosition.y + ball.height/2)) / (pad_left.height/2))*(Math.PI/4);
+				ball.x = pad_left.x + pad_left.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = Math.cos(coeffY)*ball.accMax;
 				
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					bar_pc.height -= 0.2;
+					pad_left.height -= 0.2;
 				}
 				hits ++;
-				score += Math.ceil( hits * ((Math.PI/4 - Math.abs(coeffY))/(Math.PI/4)));
+				score += calculateScore(hits, coeffY)
 				board.text = 'score: ' + score;
-			} else if(ball.x < bar_pc.x + bar_pc.width ) {
+			} else if(ball.x < pad_left.x + pad_left.width ) {
+				/* Left pad missed */
 				e.preventDefault();
 				n.play(loseScene);
 			} else {
@@ -182,13 +182,26 @@
 			}
 		});
 		
+		/* DOM Event Listeners */
+		
+		n.node.canvas.onmouseup = function() {
+			if ( n.scene.name == 'start') {
+				status.visible = false;
+				board.visible = true;
+				score = hits = 0;
+				board.text = 'score: 0';
+				ball.visible = pad_left.visible = pad_right.visible = separator.visible = true;
+				n.play(gameScene);
+			}
+		}
+		
 		n.node.canvas.onmousemove = function(e) {
-			bar_player.ny = e.clientY - e.target.offsetTop - bar_player.height/2
+			pad_right.ny = e.clientY - e.target.offsetTop - pad_right.height/2
 		}
 		
 		n.play(startScene);
 	}
 	</script>
 </head>
-<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2010!</canvas><p>By Siyan Panayotov</p></body>
+<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2011!</canvas><p>By Siyan Panayotov</p></body>
 </html>
