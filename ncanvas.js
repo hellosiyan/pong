@@ -40,9 +40,26 @@ function NEvent() {
 	this.canvas = null;
 	this.type = 'generic';
 	NObject.call(this, arguments[0]);
+	
+	this.preventDefault = function() {
+		this.isDefaultPrevented = _true;
+	},
+	this.stopPropagation = function() {
+		this.isPropagationStopped = _true;
+	},
+	this.isDefaultPrevented = _false,
+	this.isPropagationStopped = _false
 }
 NEvent.prototype = new NObject();
 NEvent.prototype.constructor = NEvent;
+
+function _true() {
+	return true;
+};
+
+function _false() {
+	return false;
+};
 
 /* NEventDispatcher */
 function NEventDispatcher() {
@@ -251,7 +268,12 @@ function NCanvas() {
 	this.iter = function() {
 		if( this.autoClear ) this.clear();
 		
-		this.scene.triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
+		var enterFrameEvent = new NEvent({type: 'onEnterFrame', canvas: this});
+		this.scene.triggerEvent(enterFrameEvent);
+		
+		if( enterFrameEvent.isDefaultPrevented() ) {
+			return;
+		}
 		
 		for( index in this.scene.children ) {
 			this.scene.children[index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
