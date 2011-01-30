@@ -286,10 +286,18 @@ function NCanvas() {
 		
 	}
 	this.play = function(scene, fps) {
-		this.scene = scene ? scene : this.scene;
-		this.fps = fps ? fps : scene.fps;
 		if ( interval != null) {
 			this.stop();
+		}
+		
+		this.scene = scene ? scene : this.scene;
+		this.fps = fps ? fps : scene.fps;
+		
+		var sceneStartEvent = new NEvent({type: 'onSceneStart', canvas: this});
+		this.scene.triggerEvent(sceneStartEvent);
+		
+		if( sceneStartEvent.isDefaultPrevented() ) {
+			return;
 		}
 		
 		var _this = this;
@@ -300,6 +308,13 @@ function NCanvas() {
 		this.iter();
 	};
 	this.stop = function() {
+		var sceneStopEvent = new NEvent({type: 'onSceneStop', canvas: this});
+		this.scene.triggerEvent(sceneStopEvent);
+		
+		if( sceneStopEvent.isDefaultPrevented() ) {
+			return;
+		}
+		
 		clearInterval(interval);
 		return this;
 	};

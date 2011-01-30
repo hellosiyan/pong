@@ -14,12 +14,12 @@
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-pong.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
-		var score = 0;
-		var hits = 0;
+		var pong = new NPong({canvas: n});
 		
 		var gameScene = new NScene({name: 'game', fps: 50});
 		var loseScene = new NScene({name: 'lose', fps: 25});
@@ -86,6 +86,13 @@
 			status.style.opacity = status.style.opacity<=0.5 ? 1:0.5;
 		});
 		
+		/* Pickup spawner */
+		var pickup_style = new NStyle({color: '#4da612'});
+		var pick_spawner = new NPongPickupSpawner({context: pong, arguments:{width: 16, height: 28, style: pickup_style}});
+		pick_spawner.addTo(gameScene);
+		pick_spawner.hunter(ball);
+		
+		
 		/* Game-related functions */
 		
 		function resetGame() {
@@ -96,10 +103,6 @@
 			separator.style.opacity = 1;
 			ball.visible = pad_left.visible = pad_right.visible = separator.visible = false;
 			n.play(startScene);
-		}
-		
-		function calculateScore(hits, accuracy) {
-			return Math.ceil( hits * ((Math.PI/4 - Math.abs(accuracy))/(Math.PI/4)));
 		}
 		
 		/* NCanvas Event Listeners */
@@ -142,9 +145,8 @@
 					ball.accMax += 0.1;
 					pad_right.height -= 0.2;
 				}
-				hits ++;
-				score += calculateScore(hits, coeffY)
-				board.text = 'score: ' + score;
+				pong.hits ++;
+				pong.scoreHit(coeffY);
 			} else if(ball.x > pad_right.x) {
 				/* Right pad missed */
 				e.preventDefault();
@@ -160,9 +162,8 @@
 					ball.accMax += 0.1;
 					pad_left.height -= 0.2;
 				}
-				hits ++;
-				score += calculateScore(hits, coeffY)
-				board.text = 'score: ' + score;
+				pong.hits ++;
+				pong.scoreHit(coeffY);
 			} else if(ball.x < pad_left.x + pad_left.width ) {
 				/* Left pad missed */
 				e.preventDefault();
@@ -182,13 +183,18 @@
 			}
 		});
 		
+		/* Pong Event Listeners */
+		pong.addListener('onScoreChange', function (e) {
+			board.text = 'score: ' + this.score;
+		});
+		
 		/* DOM Event Listeners */
 		
 		n.node.canvas.onmouseup = function() {
 			if ( n.scene.name == 'start') {
 				status.visible = false;
 				board.visible = true;
-				score = hits = 0;
+				pong.reset();
 				board.text = 'score: 0';
 				ball.visible = pad_left.visible = pad_right.visible = separator.visible = true;
 				n.play(gameScene);
