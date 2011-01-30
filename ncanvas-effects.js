@@ -27,15 +27,30 @@ function NBounce (ndrawable) {
 
 /* NFadeOut */
 
-function NFadeOut(ndrawable, speed) {
+function NFadeOut(ndrawable, step, callback) {
 	function fadeOut(e) {
-		ndrawable.style.opacity -= 0.1;
+		ndrawable.style.opacity -= step;
 		if ( this.style.opacity < 0 ) {
 			this.style.opacity = 1;
 			this.visible = false;
 			ndrawable.removeListener('onEnterFrame', fadeOut);
+			callback.call(ndrawable);
 		}
 	}
 	ndrawable.addListener('onEnterFrame', fadeOut);
+	return ndrawable;
+}
+
+function NFadeIn(ndrawable, step, callback) {
+	function fadeOut(e) {
+		ndrawable.style.opacity += step;
+		if ( this.style.opacity >= 1 ) {
+			this.style.opacity = 1;
+			ndrawable.removeListener('onEnterFrame', fadeOut);
+			callback.call(ndrawable);
+		}
+	}
+	ndrawable.addListener('onEnterFrame', fadeOut);
+	ndrawable.visible = true;
 	return ndrawable;
 }

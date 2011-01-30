@@ -15,6 +15,7 @@
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-pong.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-effects.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
 	
 	function init() {
@@ -24,6 +25,8 @@
 		var gameScene = new NScene({name: 'game', fps: 50});
 		var loseScene = new NScene({name: 'lose', fps: 25});
 		var startScene = new NScene({name: 'start', fps: 2});
+		
+		pong.set({gameScene: gameScene, loseScene: loseScene, startScene: startScene});
 		
 		/* Basic Keyboard IO */
 		
@@ -53,19 +56,19 @@
 		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
 		separator.addTo(gameScene, loseScene, startScene);
 		
-		var pad_left_style = new NStyle({color: '#4da612'});
-		var pad_left = new NRect();
-		var pad_left_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: pad_left_style, accY: 0};
-		pad_left.set(pad_left_defaults);
-		pad_left.addTo(gameScene, loseScene, startScene);
-		pong.pad_left = pad_left;
+		var padLeft_style = new NStyle({color: '#4da612'});
+		var padLeft = new NRect();
+		var padLeft_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: padLeft_style, accY: 0};
+		padLeft.set(padLeft_defaults);
+		padLeft.addTo(gameScene, loseScene, startScene);
+		pong.padLeft = padLeft;
 		
-		var pad_right = new NRect({ny: n.height/2 - 30});
-		var pad_right_style = new NStyle({color: '#4da612'});
-		var pad_right_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: pad_right_style};
-		pad_right.set(pad_right_defaults);
-		pad_right.addTo(gameScene, loseScene, startScene);
-		pong.pad_right = pad_right;
+		var padRight = new NRect({ny: n.height/2 - 30});
+		var padRight_style = new NStyle({color: '#4da612'});
+		var padRight_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: padRight_style};
+		padRight.set(padRight_defaults);
+		padRight.addTo(gameScene, loseScene, startScene);
+		pong.padRight = padRight;
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
@@ -84,7 +87,7 @@
 		status.shadowBlur    = 8;
 		status.shadowColor   = '#4da612';
 		
-		ball.visible = pad_left.visible = pad_right.visible = separator.visible = false;
+		ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
 		startScene.addListener('onEnterFrame', function(e) {
 			status.style.opacity = status.style.opacity<=0.5 ? 1:0.5;
 		});
@@ -100,10 +103,10 @@
 		function resetGame() {
 			status.visible = true;
 			ball.set(ball_defaults).style.opacity = 1;
-			pad_left.set(pad_left_defaults).style.opacity = 1;
-			pad_right.set(pad_right_defaults).style.opacity = 1;
+			padLeft.set(padLeft_defaults).style.opacity = 1;
+			padRight.set(padRight_defaults).style.opacity = 1;
 			separator.style.opacity = 1;
-			ball.visible = pad_left.visible = pad_right.visible = separator.visible = false;
+			ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
 			n.play(startScene);
 		}
 		
@@ -111,9 +114,9 @@
 		
 		loseScene.addListener('onEnterFrame', function(e) {
 			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
-			pad_left.style.opacity = pad_right.style.opacity = (pad_right.style.opacity-0.03 < 0)?0:pad_right.style.opacity - 0.03;
+			padLeft.style.opacity = padRight.style.opacity = (padRight.style.opacity-0.03 < 0)?0:padRight.style.opacity - 0.03;
 			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
-			if( ball.style.opacity <= 0 && pad_left.style.opacity <= 0 && pad_right.style.opacity <= 0 && separator.style.opacity <= 0 ) {
+			if( ball.style.opacity <= 0 && padLeft.style.opacity <= 0 && padRight.style.opacity <= 0 && separator.style.opacity <= 0 ) {
 				status.text = 'Play Again?';
 				status.x = n.width/2 - status.textWidth()/2;
 				resetGame();
@@ -122,51 +125,51 @@
 		});
 		
 		gameScene.addListener('onEnterFrame', function(e) {
-			/* Position pad_right */
+			/* Position padRight */
 			
-			if(keys.up) pad_right.ny -= 10;
-			if(keys.down) pad_right.ny += 10;
-			if(pad_right.ny < 0) {
-				pad_right.ny = 0
-			} else if( pad_right.ny + pad_right.height > n.height ) {
-				pad_right.ny = n.height - pad_right.height
+			if(keys.up) padRight.ny -= 10;
+			if(keys.down) padRight.ny += 10;
+			if(padRight.ny < 0) {
+				padRight.ny = 0
+			} else if( padRight.ny + padRight.height > n.height ) {
+				padRight.ny = n.height - padRight.height
 			}
-			pad_left.y = pad_right.y = pad_right.ny;
+			padLeft.y = padRight.y = padRight.ny;
 					
 			/* Position ball */
 			
 			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX};
 			
-			if ( ball.x + ball.accX + ball.width >= pad_right.x && ball.intersects(pad_right)) {
+			if ( ball.x + ball.accX + ball.width >= padRight.x && ball.intersects(padRight)) {
 				/* Right pad hit */
-				var coeffY = (((pad_right.y + pad_right.height/2) - (newPosition.y + ball.height/2)) / (pad_right.height/2))*(Math.PI/4);
-				ball.x = pad_right.x - ball.width;
+				var coeffY = (((padRight.y + padRight.height/2) - (newPosition.y + ball.height/2)) / (padRight.height/2))*(Math.PI/4);
+				ball.x = padRight.x - ball.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					pad_right.height -= 0.2;
+					padRight.height -= 0.2;
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
-			} else if(ball.x > pad_right.x) {
+			} else if(ball.x > padRight.x) {
 				/* Right pad missed */
 				e.preventDefault();
 				n.play(loseScene);
-			} else if( ball.x + ball.accX <= pad_left.x + pad_left.width && ball.intersects(pad_left) ) {
+			} else if( ball.x + ball.accX <= padLeft.x + padLeft.width && ball.intersects(padLeft) ) {
 				/* Left pad hit */
-				var coeffY = (((pad_left.y + pad_left.height/2) - (newPosition.y + ball.height/2)) / (pad_left.height/2))*(Math.PI/4);
-				ball.x = pad_left.x + pad_left.width;
+				var coeffY = (((padLeft.y + padLeft.height/2) - (newPosition.y + ball.height/2)) / (padLeft.height/2))*(Math.PI/4);
+				ball.x = padLeft.x + padLeft.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = Math.cos(coeffY)*ball.accMax;
 				
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					pad_left.height -= 0.2;
+					padLeft.height -= 0.2;
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
-			} else if(ball.x < pad_left.x + pad_left.width ) {
+			} else if(ball.x < padLeft.x + padLeft.width ) {
 				/* Left pad missed */
 				e.preventDefault();
 				n.play(loseScene);
@@ -198,13 +201,13 @@
 				board.visible = true;
 				pong.reset();
 				board.text = 'score: 0';
-				ball.visible = pad_left.visible = pad_right.visible = separator.visible = true;
+				ball.visible = padLeft.visible = padRight.visible = separator.visible = true;
 				n.play(gameScene);
 			}
 		}
 		
 		n.node.canvas.onmousemove = function(e) {
-			pad_right.ny = e.clientY - e.target.offsetTop - pad_right.height/2
+			padRight.ny = e.clientY - e.target.offsetTop - padRight.height/2
 		}
 		
 		n.play(startScene);

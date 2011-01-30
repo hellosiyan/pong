@@ -237,7 +237,7 @@ function NCanvas() {
 		
 		for( index in this.scene.children ) {
 			this.scene.children[index].triggerEvent(new NEvent({type: 'onEnterFrame', canvas: this}));
-			if (this.scene.children[index].visible) {
+			if (this.scene.children[index] && this.scene.children[index].visible) {
 				this.node.save();
 				this.scene.children[index].draw(this.node);
 				this.node.restore();

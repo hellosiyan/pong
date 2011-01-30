@@ -5,9 +5,15 @@ function NPong() {
 	this.canvas = null;
 	this.score = 0;
 	this.hits = 0;
-	this.pad_left = null;
-	this.pad_right = null;
+	
+	this.padLeft = null;
+	this.padRight = null;
 	this.ball = null;
+	
+	this.gameScene = null;
+	this.loseScene = null;
+	this.startScene = null;
+	
 	NEventDispatcher.call(this, arguments[0]);
 	this.reset = function() {
 		this.score = this.hits = 0;
@@ -24,20 +30,27 @@ NPong.prototype.constructor = NPong;
 /* NPongPickup */
 
 function NPongPickup() {
-	this.enabled = true;
+	this.enabled = false;
 	this.context = null;
 	NRect.call(this, arguments[0]);
 	this.draw = function(ctx) {
 		ctx.fillStyle = this.style.color;
 		ctx.strokeStyle = this.style.lineColor;
 		ctx.lineWidth = this.style.lineWidth;
+		ctx.globalAlpha = this.style.opacity;
 		
 		// Custom pickup-specific drawings here
 		
 		this.drawIcon(ctx);
 	}
 	this.activate = function() {
-		this.enabled = false;
+		var _this = this;
+		_this.enabled = false;
+		
+		NFadeOut(this, 0.05, function( pickup ) {
+			_this.context.gameScene.removeChild(this);
+		});
+		
 		this.onActivate();
 	};
 }
@@ -58,8 +71,8 @@ function NPongPickupScore() {
 		ctx.fillRect(this.x + 3*blkw, this.y, blkw, blkh);
 		ctx.fillRect(this.x + 2*blkw, this.y + 6*blkh, blkw, blkh);
 		
-		ctx.fillRect(this.x + 1, this.y + 2*blkh, blkw, blkh);
-		ctx.fillRect(this.x + 1, this.y + 5*blkh, blkw, blkh);
+		ctx.fillRect(this.x, this.y + 2*blkh, blkw, blkh);
+		ctx.fillRect(this.x, this.y + 5*blkh, blkw, blkh);
 		ctx.fillRect(this.x + 4*blkw, this.y + 1*blkh, blkw, blkh);
 		ctx.fillRect(this.x + 4*blkw, this.y + 4*blkh, blkw, blkh);
 		
@@ -91,10 +104,10 @@ function NPongPickupWide() {
 		return this;
 	}
 	this.onActivate = function() {
-		this.context.pad_left.height += 6;
-		this.context.pad_left.y = Math.max(Math.min(this.context.pad_left.y - 3, this.context.height - this.context.pad_left.height), 0);
+		this.context.padLeft.height += 6;
+		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y - 3, this.context.height - this.context.padLeft.height), 0);
 		
-		this.context.pad_right.set({height: this.context.pad_left.height, y: this.context.pad_left.y});
+		this.context.padRight.set({height: this.context.padLeft.height, y: this.context.padLeft.y});
 	};
 }
 NPongPickupWide.prototype = new NPongPickup(); 
@@ -110,7 +123,7 @@ function NPongPickupNarrow() {
 		for (var i = 0; i< 7; i++) {
 			ctx.fillRect(this.x + i*blkw, this.y + (6-i)*blkh, blkw, blkh);
 		}
-		ctx.fillRect(this.x + 4*blkw, this.y + 2*blkh, blkw*3, blkh);
+		ctx.fillRect(this.x + 5*blkw, this.y + 2*blkh, blkw*2, blkh);
 		ctx.fillRect(this.x + 4*blkw, this.y, blkw, blkh*2);
 		ctx.fillRect(this.x, this.y + 4*blkh, blkw*2, blkh);
 		ctx.fillRect(this.x+ 2*blkw, this.y + 5*blkh, blkw, blkh*2);
@@ -118,10 +131,10 @@ function NPongPickupNarrow() {
 		return this;
 	}
 	this.onActivate = function() {
-		this.context.pad_left.height -= 6;
-		this.context.pad_left.y = Math.max(Math.min(this.context.pad_left.y + 3, this.context.height - this.context.pad_left.height), 0);
+		this.context.padLeft.height -= 6;
+		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y + 3, this.context.height - this.context.padLeft.height), 0);
 		
-		this.context.pad_right.set({height: this.context.pad_left.height, y: this.context.pad_left.y});
+		this.context.padRight.set({height: this.context.padLeft.height, y: this.context.padLeft.y});
 	};
 }
 NPongPickupNarrow.prototype = new NPongPickup(); 
@@ -155,7 +168,6 @@ function NPongPickupSpawner() {
 			for(var i = 0; i < _this.pickups.length; i++ ) {
 				if( _this.pickups[i].enabled && _this.pickups[i].intersects(_this.context.ball) ) {
 					_this.pickups[i].activate();
-					this.removeChild(_this.pickups[i]);
 				}
 			}
 		});
@@ -164,10 +176,14 @@ function NPongPickupSpawner() {
 	this.spawn = function() {
 		var rand_type = Math.ceil(Math.random() * this.types.length-1);
 		var pickup = new window['NPongPickup' + this.types[rand_type]](this.arguments);
-		pickup.context = this.context;
+		pickup.set({context: this.context, style: new NStyle(this.arguments.style)});
+		pickup.style.opacity = 0;
 		
 		pickup.x = Math.ceil(Math.random() * this.context.canvas.width);
 		pickup.y = Math.ceil(Math.random() * this.context.canvas.height);
+		NFadeIn(pickup, 0.05, function() {
+			this.enabled = true
+		});
 		
 		this.pickups.push(pickup);
 		pickup.addTo(this.scene);
