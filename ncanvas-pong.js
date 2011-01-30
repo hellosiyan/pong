@@ -1,9 +1,13 @@
-/* NPongPickup */
+/* NPong */
+
 function NPong() {
 	this.enabled = true;
 	this.canvas = null;
 	this.score = 0;
 	this.hits = 0;
+	this.pad_left = null;
+	this.pad_right = null;
+	this.ball = null;
 	NEventDispatcher.call(this, arguments[0]);
 	this.reset = function() {
 		this.score = this.hits = 0;
@@ -18,10 +22,20 @@ NPong.prototype = new NEventDispatcher();
 NPong.prototype.constructor = NPong;
 
 /* NPongPickup */
+
 function NPongPickup() {
 	this.enabled = true;
 	this.context = null;
 	NRect.call(this, arguments[0]);
+	this.draw = function(ctx) {
+		ctx.fillStyle = this.style.color;
+		ctx.strokeStyle = this.style.lineColor;
+		ctx.lineWidth = this.style.lineWidth;
+		
+		// Custom pickup-specific drawings here
+		
+		this.drawIcon(ctx);
+	}
 	this.activate = function() {
 		this.enabled = false;
 		this.onActivate();
@@ -30,26 +44,24 @@ function NPongPickup() {
 NPongPickup.prototype = new NRect(); 
 NPongPickup.prototype.constructor = NPongPickup;
 
-/* NPongPickup */
+/* NPongPickupScore */
+
 function NPongPickupScore() {
-	NRect.call(this, arguments[0])
-	this.draw = function(ctx) {
-		ctx.fillStyle = this.style.color;
-		ctx.globalAlpha = this.style.opacity;
-		
-		var blkw = this.width/4, blkh = this.height/7;
+	NPongPickup.call(this, arguments[0])
+	this.drawIcon = function(ctx) {
+		var blkw = this.width/7, blkh = this.height/7;
 		
 		for (var i = 1; i<= 5; i+=2) {
-			ctx.fillRect(this.x + blkw, this.y + i*blkh, blkw*2, blkh);
+			ctx.fillRect(this.x + blkw, this.y + i*blkh, blkw*3, blkh);
 		}
 		
-		ctx.fillRect(this.x + 2*blkw, this.y, blkw, blkh);
-		ctx.fillRect(this.x + 1*blkw, this.y + 6*blkh, blkw, blkh);
+		ctx.fillRect(this.x + 3*blkw, this.y, blkw, blkh);
+		ctx.fillRect(this.x + 2*blkw, this.y + 6*blkh, blkw, blkh);
 		
-		ctx.fillRect(this.x, this.y + 2*blkh, blkw, blkh);
-		ctx.fillRect(this.x, this.y + 5*blkh, blkw, blkh);
-		ctx.fillRect(this.x + 3*blkw, this.y + 1*blkh, blkw, blkh);
-		ctx.fillRect(this.x + 3*blkw, this.y + 4*blkh, blkw, blkh);
+		ctx.fillRect(this.x + 1, this.y + 2*blkh, blkw, blkh);
+		ctx.fillRect(this.x + 1, this.y + 5*blkh, blkw, blkh);
+		ctx.fillRect(this.x + 4*blkw, this.y + 1*blkh, blkw, blkh);
+		ctx.fillRect(this.x + 4*blkw, this.y + 4*blkh, blkw, blkh);
 		
 		return this;
 	}
@@ -61,16 +73,70 @@ function NPongPickupScore() {
 NPongPickupScore.prototype = new NPongPickup(); 
 NPongPickupScore.prototype.constructor = NPongPickupScore;
 
+/* NPongPickupWide */
+
+function NPongPickupWide() {
+	NPongPickup.call(this, arguments[0])
+	this.drawIcon = function(ctx) {
+		var blkw = this.width/7, blkh = this.height/7;
+		
+		for (var i = 1; i< 6; i++) {
+			ctx.fillRect(this.x + i*blkw, this.y + (6-i)*blkh, blkw, blkh);
+		}
+		ctx.fillRect(this.x + 3*blkw, this.y, blkw*4, blkh);
+		ctx.fillRect(this.x, this.y + 6*blkh, blkw*4, blkh);
+		ctx.fillRect(this.x + 6*blkw, this.y + blkh, blkw, blkh*3);
+		ctx.fillRect(this.x, this.y + 3*blkh, blkw, blkh*3);
+		
+		return this;
+	}
+	this.onActivate = function() {
+		this.context.pad_left.height += 6;
+		this.context.pad_left.y = Math.max(Math.min(this.context.pad_left.y - 3, this.context.height - this.context.pad_left.height), 0);
+		
+		this.context.pad_right.set({height: this.context.pad_left.height, y: this.context.pad_left.y});
+	};
+}
+NPongPickupWide.prototype = new NPongPickup(); 
+NPongPickupWide.prototype.constructor = NPongPickupWide;
+
+/* NPongPickupNarrow */
+
+function NPongPickupNarrow() {
+	NPongPickup.call(this, arguments[0])
+	this.drawIcon = function(ctx) {
+		var blkw = this.width/7, blkh = this.height/7;
+		
+		for (var i = 0; i< 7; i++) {
+			ctx.fillRect(this.x + i*blkw, this.y + (6-i)*blkh, blkw, blkh);
+		}
+		ctx.fillRect(this.x + 4*blkw, this.y + 2*blkh, blkw*3, blkh);
+		ctx.fillRect(this.x + 4*blkw, this.y, blkw, blkh*2);
+		ctx.fillRect(this.x, this.y + 4*blkh, blkw*2, blkh);
+		ctx.fillRect(this.x+ 2*blkw, this.y + 5*blkh, blkw, blkh*2);
+		
+		return this;
+	}
+	this.onActivate = function() {
+		this.context.pad_left.height -= 6;
+		this.context.pad_left.y = Math.max(Math.min(this.context.pad_left.y + 3, this.context.height - this.context.pad_left.height), 0);
+		
+		this.context.pad_right.set({height: this.context.pad_left.height, y: this.context.pad_left.y});
+	};
+}
+NPongPickupNarrow.prototype = new NPongPickup(); 
+NPongPickupNarrow.prototype.constructor = NPongPickupNarrow;
+
 
 /* NPongPickupSpawner */
+
 function NPongPickupSpawner() {
 	var interval = null;
 	this.speed = 1000;
 	this.scene = null;
 	this.context = null;
-	this.hunter = null;
 	this.arguments = {};
-	this.types = ['Score'];
+	this.types = ['Score', 'Wide', 'Narrow'];
 	this.pickups = [];
 	NObject.call(this, arguments[0]);
 	this.addTo = function(scene) {
@@ -87,19 +153,13 @@ function NPongPickupSpawner() {
 		
 		this.scene.addListener('onEnterFrame', function() {
 			for(var i = 0; i < _this.pickups.length; i++ ) {
-				if( _this.pickups[i].enabled && _this.pickups[i].intersects(_this.hunter) ) {
+				if( _this.pickups[i].enabled && _this.pickups[i].intersects(_this.context.ball) ) {
 					_this.pickups[i].activate();
 					this.removeChild(_this.pickups[i]);
 				}
 			}
 		});
 		
-	}
-	this.hunter = function(value) {
-		if( !value ) {
-			return this.hunter
-		}
-		this.hunter = value;
 	}
 	this.spawn = function() {
 		var rand_type = Math.ceil(Math.random() * this.types.length-1);

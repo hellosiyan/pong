@@ -58,18 +58,21 @@
 		var pad_left_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: pad_left_style, accY: 0};
 		pad_left.set(pad_left_defaults);
 		pad_left.addTo(gameScene, loseScene, startScene);
+		pong.pad_left = pad_left;
 		
 		var pad_right = new NRect({ny: n.height/2 - 30});
 		var pad_right_style = new NStyle({color: '#4da612'});
 		var pad_right_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: pad_right_style};
 		pad_right.set(pad_right_defaults);
 		pad_right.addTo(gameScene, loseScene, startScene);
+		pong.pad_right = pad_right;
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
 		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
+		pong.ball = ball;
 		
 		var status_style = new NStyle({color: '#4da612'});
 		var status = new NText({y: n.height/2 - 9, width: 20, height: 20, text: 'Click to start!', style: status_style});
@@ -87,10 +90,9 @@
 		});
 		
 		/* Pickup spawner */
-		var pickup_style = new NStyle({color: '#4da612'});
-		var pick_spawner = new NPongPickupSpawner({context: pong, arguments:{width: 16, height: 28, style: pickup_style}});
+		var pickup_style = new NStyle({color: '#4da612', lineColor: '#4da612'});
+		var pick_spawner = new NPongPickupSpawner({context: pong, arguments:{width: 21, height: 21, style: pickup_style}});
 		pick_spawner.addTo(gameScene);
-		pick_spawner.hunter(ball);
 		
 		
 		/* Game-related functions */

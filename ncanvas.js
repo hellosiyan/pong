@@ -26,6 +26,7 @@ function NObject() {
 function NStyle() {
 	this.color = '#999'; // Polygons, Points
 	this.lineColor = '#999'; // Polygons, Points
+	this.lineWidth = 1; // Polygons, Points
 	this.fillType = 'stroke'; // Polygons, Points
 	this.skeleton = false; // Polygons
 	this.radius = 3; // Points
