@@ -52,20 +52,21 @@
 		board.set({shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor:'#4da612'});
 		board.addTo(gameScene, loseScene, startScene);
 		
+		var boardScore = 0;
+		
 		var separator_style = new NStyle({color: '#4da612'});
 		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
 		separator.addTo(gameScene, loseScene, startScene);
 		
-		var padLeft_style = new NStyle({color: '#4da612'});
+		var padStyle = new NStyle({color: '#4da612'});
 		var padLeft = new NRect();
-		var padLeft_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: padLeft_style, accY: 0};
+		var padLeft_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: padStyle, accY: 0};
 		padLeft.set(padLeft_defaults);
 		padLeft.addTo(gameScene, loseScene, startScene);
 		pong.padLeft = padLeft;
 		
 		var padRight = new NRect({ny: n.height/2 - 30});
-		var padRight_style = new NStyle({color: '#4da612'});
-		var padRight_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: padRight_style};
+		var padRight_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: padStyle};
 		padRight.set(padRight_defaults);
 		padRight.addTo(gameScene, loseScene, startScene);
 		pong.padRight = padRight;
@@ -103,20 +104,29 @@
 		function resetGame() {
 			status.visible = true;
 			ball.set(ball_defaults).style.opacity = 1;
-			padLeft.set(padLeft_defaults).style.opacity = 1;
-			padRight.set(padRight_defaults).style.opacity = 1;
+			padStyle.opacity = 1;
+			padLeft.set(padLeft_defaults);
+			padRight.set(padRight_defaults);
 			separator.style.opacity = 1;
 			ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
 			n.play(startScene);
+		}
+		
+		function updateBoard() {
+			boardScore = Math.ceil(pong.score - (pong.score - boardScore)*0.9999);
+			board.text = 'score: ' + boardScore;
 		}
 		
 		/* NCanvas Event Listeners */
 		
 		loseScene.addListener('onEnterFrame', function(e) {
 			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
-			padLeft.style.opacity = padRight.style.opacity = (padRight.style.opacity-0.03 < 0)?0:padRight.style.opacity - 0.03;
+			padStyle.opacity = ( padStyle.opacity-0.03 < 0 )? 0 :padStyle.opacity - 0.03;
 			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
-			if( ball.style.opacity <= 0 && padLeft.style.opacity <= 0 && padRight.style.opacity <= 0 && separator.style.opacity <= 0 ) {
+			
+			updateBoard();
+			
+			if( pong.score == boardScore && ball.style.opacity <= 0 && padStyle.opacity <= 0 && separator.style.opacity <= 0 ) {
 				status.text = 'Play Again?';
 				status.x = n.width/2 - status.textWidth()/2;
 				resetGame();
@@ -186,12 +196,13 @@
 			} else {
 				ball.y += ball.accY;
 			}
+			
+			updateBoard();
 		});
 		
 		/* Pong Event Listeners */
-		pong.addListener('onScoreChange', function (e) {
-			board.text = 'score: ' + this.score;
-		});
+		
+		
 		
 		/* DOM Event Listeners */
 		
@@ -200,7 +211,8 @@
 				status.visible = false;
 				board.visible = true;
 				pong.reset();
-				board.text = 'score: 0';
+				boardScore = 0;
+				updateBoard();
 				ball.visible = padLeft.visible = padRight.visible = separator.visible = true;
 				n.play(gameScene);
 			}
