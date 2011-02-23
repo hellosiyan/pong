@@ -32,6 +32,7 @@ NPong.prototype.constructor = NPong;
 function NPongPickup() {
 	this.enabled = false;
 	this.context = null;
+	this.lifetime = 1000;
 	NRect.call(this, arguments[0]);
 	this.draw = function(ctx) {
 		ctx.fillStyle = this.style.color;
@@ -43,15 +44,24 @@ function NPongPickup() {
 		
 		this.drawIcon(ctx);
 	}
-	this.activate = function() {
+	this.disable = function() {
 		var _this = this;
 		_this.enabled = false;
 		
 		NFadeOut(this, 0.05, function( pickup ) {
 			_this.context.gameScene.removeChild(this);
+			delete this;
 		});
-		
+	};
+	this.activate = function() {
+		this.disable();
 		this.onActivate();
+	};
+	this.autoExpire = function() {
+		var _this = this;
+		setTimeout(function() {
+			_this.disable();
+		}, _this.lifetime);
 	};
 }
 NPongPickup.prototype = new NRect(); 
@@ -79,7 +89,7 @@ function NPongPickupScore() {
 		return this;
 	}
 	this.onActivate = function() {
-		this.context.score += 4 + Math.ceil(Math.random()*11);
+		this.context.score += 39 + Math.ceil(Math.random()*11);
 		this.context.triggerEvent(new NEvent({type: 'onScoreChange'}));
 	};
 }
@@ -104,8 +114,8 @@ function NPongPickupWide() {
 		return this;
 	}
 	this.onActivate = function() {
-		this.context.padLeft.height += 6;
-		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y - 3, this.context.height - this.context.padLeft.height), 0);
+		this.context.padLeft.height = Math.min(this.context.padLeft.height + 6, this.context.canvas.height*0.4);
+		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y - 3, this.context.canvas.height - this.context.padLeft.height), 0);
 		
 		this.context.padRight.set({height: this.context.padLeft.height, y: this.context.padLeft.y});
 	};
@@ -131,8 +141,8 @@ function NPongPickupNarrow() {
 		return this;
 	}
 	this.onActivate = function() {
-		this.context.padLeft.height -= 6;
-		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y + 3, this.context.height - this.context.padLeft.height), 0);
+		this.context.padLeft.height = Math.max(this.context.padLeft.height - 6, this.context.ball.height*4);
+		this.context.padLeft.y = Math.max(Math.min(this.context.padLeft.y + 3, this.context.canvas.height - this.context.padLeft.height), 0);
 		
 		this.context.padRight.set({height: this.context.padLeft.height, y: this.context.padLeft.y});
 	};
@@ -145,13 +155,15 @@ NPongPickupNarrow.prototype.constructor = NPongPickupNarrow;
 
 function NPongPickupSpawner() {
 	var interval = null;
-	this.speed = 1000;
+	this.speed = 10000;
 	this.scene = null;
 	this.context = null;
+	this.area = new NRect();
 	this.arguments = {};
-	this.types = ['Score', 'Wide', 'Narrow'];
+	this.types = 'Wide Narrow Score'.split(' ');
 	this.pickups = [];
 	NObject.call(this, arguments[0]);
+	
 	this.addTo = function(scene) {
 		this.scene = scene;
 		var _this = this;
@@ -166,28 +178,31 @@ function NPongPickupSpawner() {
 		
 		this.scene.addListener('onEnterFrame', function() {
 			for(var i = 0; i < _this.pickups.length; i++ ) {
-				if( _this.pickups[i].enabled && _this.pickups[i].intersects(_this.context.ball) ) {
+				if( _this.pickups[i] && _this.pickups[i].enabled && _this.pickups[i].intersects(_this.context.ball) ) {
 					_this.pickups[i].activate();
 				}
 			}
 		});
 		
 	}
+	
 	this.spawn = function() {
 		var rand_type = Math.ceil(Math.random() * this.types.length-1);
 		var pickup = new window['NPongPickup' + this.types[rand_type]](this.arguments);
 		pickup.set({context: this.context, style: new NStyle(this.arguments.style)});
 		pickup.style.opacity = 0;
 		
-		pickup.x = Math.ceil(Math.random() * this.context.canvas.width);
-		pickup.y = Math.ceil(Math.random() * this.context.canvas.height);
+		pickup.x = Math.ceil(Math.random() * (this.area.width - pickup.width) + this.area.x);
+		pickup.y = Math.ceil(Math.random() * (this.area.height - pickup.height) + this.area.y);
 		NFadeIn(pickup, 0.05, function() {
 			this.enabled = true
 		});
 		
 		this.pickups.push(pickup);
 		pickup.addTo(this.scene);
+		pickup.autoExpire()
 	}
+	
 	this.start = function() {
 		var _this = this;
 		
@@ -199,13 +214,36 @@ function NPongPickupSpawner() {
 			_this.spawn();
 		}, this.speed);
 	}
+	
 	this.stop = function() {
 		clearInterval(interval);
 		interval = null;
 		
 		for (var i = 0; i < this.pickups.length; i ++ ) {
-			this.scene.removeChild(this.pickups[i]);
+			if( this.pickups[i] ) {
+				this.scene.removeChild(this.pickups[i]);
+			}
 		}
+	}
+	
+	this.disableAll = function() {
+		for(var i = 0; i < this.pickups.length; i++ ) {
+			if( this.pickups[i] ) {
+				this.pickups[i].disable();
+			}
+		}
+		
+		return this;
+	}
+	
+	this.clear = function() {
+		for(var i = 0; i < this.pickups.length; i++ ) {
+			if( this.pickups[i] ) {
+				delete this.pickups[i];
+			}
+		}
+		delete this.pickups;
+		this.pickups = [];
 	}
 }
 NPongPickupSpawner.prototype = new NObject(); 

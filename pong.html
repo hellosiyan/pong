@@ -95,7 +95,8 @@
 		
 		/* Pickup spawner */
 		var pickup_style = new NStyle({color: '#4da612', lineColor: '#4da612'});
-		var pick_spawner = new NPongPickupSpawner({context: pong, arguments:{width: 21, height: 21, style: pickup_style}});
+		var pickup_area = new NRect({x: 30, y: 30, width: pong.canvas.width - 60, height: pong.canvas.height - 40});
+		var pick_spawner = new NPongPickupSpawner({context: pong, speed: 8000, area: pickup_area, arguments:{width: 21, height: 21, lifetime: 7000, style: pickup_style}});
 		pick_spawner.addTo(gameScene);
 		
 		
@@ -113,7 +114,9 @@
 		}
 		
 		function updateBoard() {
-			boardScore = Math.ceil(pong.score - (pong.score - boardScore)*0.9999);
+			if ( boardScore != pong.score ) {
+				boardScore = Math.ceil(Math.min(pong.score + 1 - (pong.score - boardScore)*0.95, pong.score));
+			}
 			board.text = 'score: ' + boardScore;
 		}
 		
@@ -166,6 +169,7 @@
 				/* Right pad missed */
 				e.preventDefault();
 				n.play(loseScene);
+				pick_spawner.disableAll().clear();
 			} else if( ball.x + ball.accX <= padLeft.x + padLeft.width && ball.intersects(padLeft) ) {
 				/* Left pad hit */
 				var coeffY = (((padLeft.y + padLeft.height/2) - (newPosition.y + ball.height/2)) / (padLeft.height/2))*(Math.PI/4);
@@ -183,6 +187,7 @@
 				/* Left pad missed */
 				e.preventDefault();
 				n.play(loseScene);
+				pick_spawner.disableAll().clear();
 			} else {
 				ball.x += ball.accX;
 			}
