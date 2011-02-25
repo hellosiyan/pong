@@ -6,10 +6,10 @@
 	<style type="text/css" media="screen">
 	* { margin: 0; padding: 0; outline: 0; }
 	html, body { background: black; text-align: center; color: #4da612; }
-	h1 { background: url(pong.gif) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
+	h1 { background: url(pong.png) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
 	a { color: white; text-decoration: none }
-	canvas { border-top: 1px solid #4da612; border-bottom: 1px solid #4da612; cursor: crosshair; margin-top: 30px; }
-	p { height: 22px; margin-top: 30px; background: url(footer.gif) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
+	canvas { border-top: 1px solid #3e850e; border-bottom: 1px solid #4da612; cursor: crosshair; }
+	p { height: 42px; background: url(footer.png) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
 	</style>
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
@@ -59,13 +59,13 @@
 		separator.addTo(gameScene, loseScene, startScene);
 		
 		var padStyle = new NStyle({color: '#4da612'});
-		var padLeft = new NRect();
+		var padLeft = new NPongPad();
 		var padLeft_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: padStyle, accY: 0};
 		padLeft.set(padLeft_defaults);
 		padLeft.addTo(gameScene, loseScene, startScene);
 		pong.padLeft = padLeft;
 		
-		var padRight = new NRect({ny: n.height/2 - 30});
+		var padRight = new NPongPad({ny: n.height/2 - 30, type: NPongPad.RIGHT});
 		var padRight_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: padStyle};
 		padRight.set(padRight_defaults);
 		padRight.addTo(gameScene, loseScene, startScene);
@@ -73,7 +73,7 @@
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
-		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -6, accY: 0, accMax: 7};
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -7, accY: 0, accMax: 7};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
 		pong.ball = ball;
@@ -96,7 +96,7 @@
 		/* Pickup spawner */
 		var pickup_style = new NStyle({color: '#4da612', lineColor: '#4da612'});
 		var pickup_area = new NRect({x: 30, y: 30, width: pong.canvas.width - 60, height: pong.canvas.height - 40});
-		var pick_spawner = new NPongPickupSpawner({context: pong, speed: 8000, area: pickup_area, arguments:{width: 21, height: 21, lifetime: 7000, style: pickup_style}});
+		var pick_spawner = new NPongPickupSpawner({context: pong, speed: 10000, area: pickup_area, arguments:{width: 21, height: 21, lifetime: 7000, style: pickup_style}});
 		pick_spawner.addTo(gameScene);
 		
 		
@@ -148,12 +148,12 @@
 				padRight.ny = n.height - padRight.height
 			}
 			padLeft.y = padRight.y = padRight.ny;
-					
+			
 			/* Position ball */
 			
-			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX};
+			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
 			
-			if ( ball.x + ball.accX + ball.width >= padRight.x && ball.intersects(padRight)) {
+			if ( ball.x + ball.accX + ball.width >= padRight.x && padRight.intersects(newPosition)) {
 				/* Right pad hit */
 				var coeffY = (((padRight.y + padRight.height/2) - (newPosition.y + ball.height/2)) / (padRight.height/2))*(Math.PI/4);
 				ball.x = padRight.x - ball.width;
@@ -161,7 +161,6 @@
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					padRight.height -= 0.2;
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
@@ -170,7 +169,8 @@
 				e.preventDefault();
 				n.play(loseScene);
 				pick_spawner.disableAll().clear();
-			} else if( ball.x + ball.accX <= padLeft.x + padLeft.width && ball.intersects(padLeft) ) {
+				return;
+			} else if( ball.x + ball.accX <= padLeft.x + padLeft.width && padLeft.intersects(newPosition) ) {
 				/* Left pad hit */
 				var coeffY = (((padLeft.y + padLeft.height/2) - (newPosition.y + ball.height/2)) / (padLeft.height/2))*(Math.PI/4);
 				ball.x = padLeft.x + padLeft.width;
@@ -179,15 +179,15 @@
 				
 				if( ball.accMax < 14 ) {
 					ball.accMax += 0.1;
-					padLeft.height -= 0.2;
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
-			} else if(ball.x < padLeft.x + padLeft.width ) {
+			} else if(ball.x + ball.width < padLeft.x + padLeft.width ) {
 				/* Left pad missed */
 				e.preventDefault();
 				n.play(loseScene);
 				pick_spawner.disableAll().clear();
+				return;
 			} else {
 				ball.x += ball.accX;
 			}

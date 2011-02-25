@@ -27,6 +27,37 @@ function NPong() {
 NPong.prototype = new NEventDispatcher(); 
 NPong.prototype.constructor = NPong;
 
+
+function NPongPad() {
+	this.type = NPongPad.LEFT;
+	
+	NRect .call(this, arguments[0]);
+	this.draw = function(ctx) {
+		ctx.fillStyle = this.style.color;
+		ctx.globalAlpha = this.style.opacity;
+		
+		if( this.type == NPongPad.LEFT ) {
+			ctx.fillRect(this.x + 10, this.y, this.width - 10, this.height);
+			ctx.globalAlpha = this.style.opacity/1.5;
+			ctx.fillRect(this.x+9, this.y, 1, this.height);
+			ctx.globalAlpha = this.style.opacity/3;
+			ctx.fillRect(this.x+8, this.y, 1, this.height);
+		} else {
+			ctx.fillRect(this.x, this.y, this.width - 10, this.height);
+			ctx.globalAlpha = this.style.opacity/1.5;
+			ctx.fillRect(this.x + this.width - 10, this.y, 1, this.height);
+			ctx.globalAlpha = this.style.opacity/3;
+			ctx.fillRect(this.x + this.width - 9, this.y, 1, this.height);
+		}
+		
+		return this;
+	}
+}
+NPongPad.prototype = new NRect(); 
+NPongPad.prototype.constructor = NPongPad;
+NPongPad.RIGHT = 0;
+NPongPad.LEFT = 1;
+
 /* NPongPickup */
 
 function NPongPickup() {
