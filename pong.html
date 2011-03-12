@@ -164,6 +164,7 @@
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
+				(new NPongSparkle({x: ball.x + ball.width, y: ball.y, style: pickup_style})).addTo(gameScene);
 			} else if(ball.x > padRight.x) {
 				/* Right pad missed */
 				e.preventDefault();
@@ -182,6 +183,7 @@
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
+				(new NPongSparkle({x: ball.x, y: ball.y, style: pickup_style, type: NPongSparkle.RIGHT})).addTo(gameScene);
 			} else if(ball.x + ball.width < padLeft.x + padLeft.width ) {
 				/* Left pad missed */
 				e.preventDefault();

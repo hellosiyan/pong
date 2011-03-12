@@ -279,3 +279,58 @@ function NPongPickupSpawner() {
 }
 NPongPickupSpawner.prototype = new NObject(); 
 NPongPickupSpawner.prototype.constructor = NPongPickupSpawner;
+
+function NPongSparkle() {
+	this.type = NPongSparkle.LEFT;
+	this.frame = 0;
+	this.lifespan = 15;
+	this.parents = [];
+	
+	NRect.call(this, arguments[0]);
+	
+	this.numSparks = 7 + Math.ceil(Math.random()*3);
+	this.sparks = [];
+	
+	for ( i = 0; i < this.numSparks; i ++ ) {
+		this.sparks[i] = {x: 0, y: 5 - Math.random()*10, dx: Math.random()*2, dy: 4 - Math.random()*8};
+	}
+	
+	this.addTo = function() {
+		for (i = arguments.length -1; i >= 0; i--) {
+			if (NScene.prototype.isPrototypeOf(arguments[i])) {
+				arguments[i].addChild(this);
+				this.parents.push(arguments[i]);
+			}
+		}
+	}
+	
+	this.draw = function(ctx) {
+		if( this.frame == this.lifespan ) {
+			this.sparks.splice(0, this.sparks);
+			for ( i in this.parents ) {
+				this.parents[i].removeChild(this);
+			}
+			delete this;
+			return;
+		}
+		
+		this.frame ++;
+		var k = 1-Math.pow(this.frame/this.lifespan, 2);
+		
+		ctx.fillStyle = this.style.color;
+		ctx.globalAlpha = Math.max(Math.min(k, 1), 0);
+		
+		for ( i in this.sparks ) {
+			this.sparks[i].x += this.type*this.sparks[i].dx * k;
+			this.sparks[i].y += this.sparks[i].dy * k;
+			ctx.fillRect(this.x + this.sparks[i].x, this.y + this.sparks[i].y, 1.5, 1.5);
+		}
+		
+		return this;
+	}
+}
+NPongSparkle.prototype = new NRect(); 
+NPongSparkle.prototype.constructor = NPongSparkle;
+NPongSparkle.RIGHT = 1;
+NPongSparkle.LEFT = -1;
+
