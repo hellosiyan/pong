@@ -224,6 +224,7 @@ function NCanvas() {
 	this.autoClear = true;
 	this.scene = null;
 	this.node = null;
+	this.is_playing = false;
 	NObject.call(this, arguments[0])
 	this.iter = function() {
 		if( this.autoClear ) this.clear();
@@ -251,12 +252,14 @@ function NCanvas() {
 		}
 		
 		this.scene = scene ? scene : this.scene;
-		this.fps = fps ? fps : scene.fps;
+		this.fps = fps ? fps : this.scene.fps;
 		
+		this.is_playing = true;
 		var sceneStartEvent = new NEvent({type: 'onSceneStart', canvas: this});
 		this.scene.triggerEvent(sceneStartEvent);
 		
 		if( sceneStartEvent.isDefaultPrevented() ) {
+			this.is_playing = false;
 			return;
 		}
 		
@@ -268,22 +271,24 @@ function NCanvas() {
 		this.iter();
 	};
 	this.stop = function() {
+		this.is_playing = false;
 		var sceneStopEvent = new NEvent({type: 'onSceneStop', canvas: this});
 		this.scene.triggerEvent(sceneStopEvent);
 		
 		if( sceneStopEvent.isDefaultPrevented() ) {
-			return;
+			this.is_playing = true;
+			return this;
 		}
 		
 		clearInterval(interval);
 		return this;
 	};
+	this.clear = function() {
+		this.node.clearRect(0, 0, this.node.canvas.width, this.node.canvas.height);
+	};
 }
 NCanvas.prototype = new NObject();
 NCanvas.prototype.constructor = NCanvas;
-	NCanvas.prototype.clear = function() {
-		this.node.clearRect(0, 0, this.node.canvas.width, this.node.canvas.height);
-	};
 
 HTMLCanvasElement.prototype.getNCanvas = function() {
 	var ctx = new NCanvas();

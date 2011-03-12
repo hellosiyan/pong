@@ -20,6 +20,7 @@
 	
 	function init() {
 		var n = document.getElementById("area").getNCanvas();
+		window.n = n
 		var pong = new NPong({canvas: n});
 		
 		var gameScene = new NScene({name: 'game', fps: 50});
@@ -54,6 +55,13 @@
 		
 		var boardScore = 0;
 		
+		var textshadow = {shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor: '#4da612'};
+		
+		var pauseText = new NText({text: 'Paused', width: 20, height: 20, style: board_style, visible: false});
+		pauseText.x = n.width/2 - pauseText.textWidth()/2;
+		pauseText.y = n.height/2 - 9;
+		pauseText.set(textshadow)
+		
 		var separator_style = new NStyle({color: '#4da612'});
 		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
 		separator.addTo(gameScene, loseScene, startScene);
@@ -82,11 +90,7 @@
 		var status = new NText({y: n.height/2 - 9, width: 20, height: 20, text: 'Click to start!', style: status_style});
 		status.x = n.width/2 - status.textWidth()/2;
 		status.addTo(gameScene, loseScene, startScene);
-		
-		status.shadowOffsetX = 0;
-		status.shadowOffsetY = 0;
-		status.shadowBlur    = 8;
-		status.shadowColor   = '#4da612';
+		status.set(textshadow)
 		
 		ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
 		startScene.addListener('onEnterFrame', function(e) {
@@ -222,6 +226,29 @@
 				updateBoard();
 				ball.visible = padLeft.visible = padRight.visible = separator.visible = true;
 				n.play(gameScene);
+			}
+		}
+		
+		n.node.canvas.onmousedown = function() {
+			if ( n.scene.name == 'game') {
+				if ( n.is_playing ) {
+					n.stop().clear();
+					
+					for( index in n.scene.children ) {
+						if (n.scene.children[index] && n.scene.children[index] != ball && n.scene.children[index].visible) {
+							n.node.save();
+							n.scene.children[index].draw(n.node);
+							n.node.restore();
+						}
+					}
+					
+					n.node.save();
+					(new NRect({width:n.width,height:n.height,style: new NStyle({color:'#000',opacity: 0.7})})).draw(n.node);
+					pauseText.draw(n.node);
+					n.node.restore();
+				} else {
+					n.play();
+				}
 			}
 		}
 		
