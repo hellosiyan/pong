@@ -8,13 +8,15 @@
 	html, body { background: black; text-align: center; color: #4da612; }
 	h1 { background: url(pong.png) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
 	a { color: white; text-decoration: none }
-	canvas { border-top: 1px solid #3e850e; border-bottom: 1px solid #4da612; cursor: crosshair; }
+	canvas#area { border-top: 1px solid #3e850e; border-bottom: 1px solid #4da612; cursor: crosshair; }
+	canvas#board { display: block; margin: 0 auto; }
 	p { height: 42px; background: url(footer.png) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
 	</style>
 	
 	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-pong.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-minibar.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script src="ncanvas-effects.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
 	<script type="text/javascript" language="javascript" charset="utf-8">
 	
@@ -81,7 +83,7 @@
 		
 		var ball = new NRect();
 		var ball_style = new NStyle({color: '#4da612'});
-		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -7, accY: 0, accMax: 7};
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -7, accY: 0, accMax: 7, accCeil: 14};
 		ball.set(ball_defaults);
 		ball.addTo(gameScene, loseScene, startScene);
 		pong.ball = ball;
@@ -103,6 +105,10 @@
 		var pick_spawner = new NPongPickupSpawner({context: pong, speed: 10000, area: pickup_area, arguments:{width: 21, height: 21, lifetime: 7000, style: pickup_style}});
 		pick_spawner.addTo(gameScene);
 		
+		
+		/* Status Board */
+		var s = document.getElementById("board").getNMinibar();
+		window.s = s.set({creditLine: 'by Siyan Panayotov', speed: {min: ball_defaults.accMax, max: ball_defaults.accCeil}}).init();
 		
 		/* Game-related functions */
 		
@@ -163,8 +169,9 @@
 				ball.x = padRight.x - ball.width;
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
-				if( ball.accMax < 14 ) {
+				if( ball.accMax < ball_defaults.accCeil ) {
 					ball.accMax += 0.1;
+					s.update(ball.accMax);
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
@@ -182,8 +189,9 @@
 				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
 				ball.accX = Math.cos(coeffY)*ball.accMax;
 				
-				if( ball.accMax < 14 ) {
+				if( ball.accMax < ball_defaults.accCeil ) {
 					ball.accMax += 0.1;
+					s.update(ball.accMax);
 				}
 				pong.hits ++;
 				pong.scoreHit(coeffY);
@@ -213,8 +221,6 @@
 		
 		/* Pong Event Listeners */
 		
-		
-		
 		/* DOM Event Listeners */
 		
 		n.node.canvas.onmouseup = function() {
@@ -226,6 +232,7 @@
 				updateBoard();
 				ball.visible = padLeft.visible = padRight.visible = separator.visible = true;
 				n.play(gameScene);
+				s.reset().showStats();
 			}
 		}
 		
@@ -260,5 +267,5 @@
 	}
 	</script>
 </head>
-<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2011!</canvas><p>By Siyan Panayotov</p></body>
+<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2011!</canvas><canvas id="board" width="400" height="40">By Siyan Panayotov</canvas></body>
 </html>

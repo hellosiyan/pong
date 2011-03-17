@@ -244,6 +244,8 @@ function NPongPickupSpawner() {
 		interval = setInterval(function() {
 			_this.spawn();
 		}, this.speed);
+		
+		return this;
 	}
 	
 	this.stop = function() {
