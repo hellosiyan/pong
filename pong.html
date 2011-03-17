@@ -97,7 +97,7 @@
 		var substatus = new NText({y: n.height - 20, x: 7, width: 10, height: 10, text: 'best score: ' + pong.getBestScore(), style: new NStyle(status_style)});
 		substatus.addTo(startScene);
 		if ( pong.getBestScore() < 1 ) {
-			substatus.visible = false;
+			substatus.text = "(Click again to pause)";
 		}
 		
 		ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
@@ -126,9 +126,7 @@
 			padRight.set(padRight_defaults);
 			separator.style.opacity = 1;
 			ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
-			if ( pong.getBestScore() < 1 ) {
-				substatus.visible = false;
-			} else {
+			if ( pong.getBestScore() > 0 ) {
 				substatus.set({text: 'best score: ' + pong.getBestScore(), visible: true});
 				s.set({scoreMax: pong.getBestScore()});
 			}

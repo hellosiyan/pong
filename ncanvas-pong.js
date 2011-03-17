@@ -26,10 +26,11 @@ function NPong() {
 		return this.score;
 	}
 	this.getBestScore = function () {
-		return Math.max(this.bestScore, isNaN(localStorage._pong_bestScore)?0:localStorage._pong_bestScore);
+		return Math.max(this.bestScore, isNaN(localStorage._pong_bestScore)?0:localStorage._pong_bestScore, NCanvas.cookie('_pong_bestScore'));
 	}
 	this.setBestScore = function ( score ) {
 		this.bestScore = localStorage._pong_bestScore = Math.max(score, isNaN(localStorage._pong_bestScore)?0:localStorage._pong_bestScore );
+		NCanvas.cookie('_pong_bestScore', this.bestScore);
 	}
 }
 NPong.prototype = new NEventDispatcher(); 
