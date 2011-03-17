@@ -88,11 +88,17 @@
 		ball.addTo(gameScene, loseScene, startScene);
 		pong.ball = ball;
 		
-		var status_style = new NStyle({color: '#4da612'});
+		var status_style = new NStyle({color: '#4da612', opacity: 0.6});
 		var status = new NText({y: n.height/2 - 9, width: 20, height: 20, text: 'Click to start!', style: status_style});
 		status.x = n.width/2 - status.textWidth()/2;
 		status.addTo(gameScene, loseScene, startScene);
 		status.set(textshadow)
+		
+		var substatus = new NText({y: n.height - 20, x: 7, width: 10, height: 10, text: 'best score: ' + pong.getBestScore(), style: new NStyle(status_style)});
+		substatus.addTo(startScene);
+		if ( pong.getBestScore() < 1 ) {
+			substatus.visible = false;
+		}
 		
 		ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
 		startScene.addListener('onEnterFrame', function(e) {
@@ -108,7 +114,7 @@
 		
 		/* Status Board */
 		var s = document.getElementById("board").getNMinibar();
-		window.s = s.set({creditLine: 'by Siyan Panayotov', speed: {min: ball_defaults.accMax, max: ball_defaults.accCeil}}).init();
+		window.s = s.set({creditLine: 'by Siyan Panayotov', scoreMax: pong.getBestScore(), speed: {min: ball_defaults.accMax, max: ball_defaults.accCeil}}).init().reset();
 		
 		/* Game-related functions */
 		
@@ -120,6 +126,12 @@
 			padRight.set(padRight_defaults);
 			separator.style.opacity = 1;
 			ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
+			if ( pong.getBestScore() < 1 ) {
+				substatus.visible = false;
+			} else {
+				substatus.set({text: 'best score: ' + pong.getBestScore(), visible: true});
+				s.set({scoreMax: pong.getBestScore()});
+			}
 			n.play(startScene);
 		}
 		
@@ -128,6 +140,7 @@
 				boardScore = Math.ceil(Math.min(pong.score + 1 - (pong.score - boardScore)*0.95, pong.score));
 			}
 			board.text = 'score: ' + boardScore;
+			s.update(null, boardScore);
 		}
 		
 		/* NCanvas Event Listeners */

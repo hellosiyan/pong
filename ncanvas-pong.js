@@ -4,6 +4,7 @@ function NPong() {
 	this.enabled = true;
 	this.canvas = null;
 	this.score = 0;
+	this.bestScore = 0;
 	this.hits = 0;
 	
 	this.padLeft = null;
@@ -20,8 +21,15 @@ function NPong() {
 	}
 	this.scoreHit = function (accuracy) {
 		this.score += Math.ceil( this.hits * ((Math.PI/4 - Math.abs(accuracy))/(Math.PI/4)));
+		this.setBestScore(this.score);
 		this.triggerEvent(new NEvent({type: 'onScoreChange'}));
 		return this.score;
+	}
+	this.getBestScore = function () {
+		return Math.max(this.bestScore, isNaN(localStorage._pong_bestScore)?0:localStorage._pong_bestScore);
+	}
+	this.setBestScore = function ( score ) {
+		this.bestScore = localStorage._pong_bestScore = Math.max(score, isNaN(localStorage._pong_bestScore)?0:localStorage._pong_bestScore );
 	}
 }
 NPong.prototype = new NEventDispatcher(); 
