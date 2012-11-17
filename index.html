@@ -1,0 +1,282 @@
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>Canvas</title>
+	
+	<style type="text/css" media="screen">
+	* { margin: 0; padding: 0; outline: 0; }
+	html, body { background: black; text-align: center; color: #4da612; }
+	h1 { background: url(pong.png) no-repeat center 30px; height: 133px; font-size:0; line-height: 0; text-indent: -4000px; }
+	a { color: white; text-decoration: none }
+	canvas#area { border-top: 1px solid #3e850e; border-bottom: 1px solid #4da612; cursor: crosshair; }
+	canvas#board { display: block; margin: 0 auto; }
+	p { height: 42px; background: url(footer.png) no-repeat center 0; font-size:0; line-height: 0; text-indent: -4000px; }
+	</style>
+	
+	<script src="ncanvas.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-text.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-pong.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-minibar.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script src="ncanvas-effects.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+	<script type="text/javascript" language="javascript" charset="utf-8">
+	
+	function init() {
+		var n = document.getElementById("area").getNCanvas();
+		window.n = n
+		var pong = new NPong({canvas: n});
+		
+		var gameScene = new NScene({name: 'game', fps: 50});
+		var loseScene = new NScene({name: 'lose', fps: 25});
+		var startScene = new NScene({name: 'start', fps: 2});
+		
+		pong.set({gameScene: gameScene, loseScene: loseScene, startScene: startScene});
+		
+		/* Basic Keyboard IO */
+		
+		var keys = {up: false, down: false};
+		window.onkeydown = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = true; break;
+				case 40: keys.down = true; break;
+			}
+		}
+		window.onkeyup = function(e) {
+			switch(e.keyCode){
+				case 38: keys.up = false; break;
+				case 40: keys.down = false; break;
+			}
+		}
+		
+		/* Setup objects  */
+		
+		var board_style = new NStyle({color: '#4da612', opacity: 0.8});
+		var board = new NText({y:10, text: 'Score: 123', width: 15, height: 15, style: board_style, visible: false});
+		board.x = n.width/2 - board.textWidth()/2;
+		board.set({shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor:'#4da612'});
+		board.addTo(gameScene, loseScene, startScene);
+		
+		var boardScore = 0;
+		
+		var textshadow = {shadowOffsetX: 0, shadowOffsetY: 0, shadowBlur: 8, shadowColor: '#4da612'};
+		
+		var pauseText = new NText({text: 'Paused', width: 20, height: 20, style: board_style, visible: false});
+		pauseText.x = n.width/2 - pauseText.textWidth()/2;
+		pauseText.y = n.height/2 - 9;
+		pauseText.set(textshadow)
+		
+		var separator_style = new NStyle({color: '#4da612'});
+		var separator = new NRect({x: n.width/2, y: 35, width: 1, height: n.height - 35, style: separator_style});
+		separator.addTo(gameScene, loseScene, startScene);
+		
+		var padStyle = new NStyle({color: '#4da612'});
+		var padLeft = new NPongPad();
+		var padLeft_defaults = {width: 13, height: 60, x: 10, y: n.height/2 - 30, style: padStyle, accY: 0};
+		padLeft.set(padLeft_defaults);
+		padLeft.addTo(gameScene, loseScene, startScene);
+		pong.padLeft = padLeft;
+		
+		var padRight = new NPongPad({ny: n.height/2 - 30, type: NPongPad.RIGHT});
+		var padRight_defaults = {width: 13, height: 60, x: n.width - 23, y: n.height/2 - 30, style: padStyle};
+		padRight.set(padRight_defaults);
+		padRight.addTo(gameScene, loseScene, startScene);
+		pong.padRight = padRight;
+		
+		var ball = new NRect();
+		var ball_style = new NStyle({color: '#4da612'});
+		var ball_defaults = {style: ball_style, width: 10, height: 10, x: n.width/2, y: n.height/2, accX: -7, accY: 0, accMax: 7, accCeil: 14};
+		ball.set(ball_defaults);
+		ball.addTo(gameScene, loseScene, startScene);
+		pong.ball = ball;
+		
+		var status_style = new NStyle({color: '#4da612', opacity: 0.6});
+		var status = new NText({y: n.height/2 - 9, width: 20, height: 20, text: 'Click to start!', style: status_style});
+		status.x = n.width/2 - status.textWidth()/2;
+		status.addTo(gameScene, loseScene, startScene);
+		status.set(textshadow)
+		
+		var substatus = new NText({y: n.height - 20, x: 7, width: 10, height: 10, text: 'best score: ' + pong.getBestScore(), style: new NStyle(status_style)});
+		substatus.addTo(startScene);
+		if ( pong.getBestScore() < 1 ) {
+			substatus.text = "(Click again to pause)";
+		}
+		
+		ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
+		startScene.addListener('onEnterFrame', function(e) {
+			status.style.opacity = status.style.opacity<=0.5 ? 1:0.5;
+		});
+		
+		/* Pickup spawner */
+		var pickup_style = new NStyle({color: '#4da612', lineColor: '#4da612'});
+		var pickup_area = new NRect({x: 30, y: 30, width: pong.canvas.width - 60, height: pong.canvas.height - 40});
+		var pick_spawner = new NPongPickupSpawner({context: pong, speed: 10000, area: pickup_area, arguments:{width: 21, height: 21, lifetime: 7000, style: pickup_style}});
+		pick_spawner.addTo(gameScene);
+		
+		
+		/* Status Board */
+		var s = document.getElementById("board").getNMinibar();
+		window.s = s.set({creditLine: 'by Siyan Panayotov', scoreMax: pong.getBestScore(), speed: {min: ball_defaults.accMax, max: ball_defaults.accCeil}}).init().reset();
+		
+		/* Game-related functions */
+		
+		function resetGame() {
+			status.visible = true;
+			ball.set(ball_defaults).style.opacity = 1;
+			padStyle.opacity = 1;
+			padLeft.set(padLeft_defaults);
+			padRight.set(padRight_defaults);
+			separator.style.opacity = 1;
+			ball.visible = padLeft.visible = padRight.visible = separator.visible = false;
+			if ( pong.getBestScore() > 0 ) {
+				substatus.set({text: 'best score: ' + pong.getBestScore(), visible: true});
+				s.set({scoreMax: pong.getBestScore()});
+			}
+			n.play(startScene);
+		}
+		
+		function updateBoard() {
+			if ( boardScore != pong.score ) {
+				boardScore = Math.ceil(Math.min(pong.score + 1 - (pong.score - boardScore)*0.95, pong.score));
+			}
+			board.text = 'score: ' + boardScore;
+			s.update(null, boardScore);
+		}
+		
+		/* NCanvas Event Listeners */
+		
+		loseScene.addListener('onEnterFrame', function(e) {
+			separator.style.opacity = (separator.style.opacity-0.04 < 0)?0:separator.style.opacity - 0.04;
+			padStyle.opacity = ( padStyle.opacity-0.03 < 0 )? 0 :padStyle.opacity - 0.03;
+			ball.style.opacity = (ball.style.opacity-0.02 < 0)?0:ball.style.opacity - 0.02;
+			
+			updateBoard();
+			
+			if( pong.score == boardScore && ball.style.opacity <= 0 && padStyle.opacity <= 0 && separator.style.opacity <= 0 ) {
+				status.text = 'Play Again?';
+				status.x = n.width/2 - status.textWidth()/2;
+				resetGame();
+				e.preventDefault();
+			}
+		});
+		
+		gameScene.addListener('onEnterFrame', function(e) {
+			/* Position padRight */
+			
+			if(keys.up) padRight.ny -= 10;
+			if(keys.down) padRight.ny += 10;
+			if(padRight.ny < 0) {
+				padRight.ny = 0
+			} else if( padRight.ny + padRight.height > n.height ) {
+				padRight.ny = n.height - padRight.height
+			}
+			padLeft.y = padRight.y = padRight.ny;
+			
+			/* Position ball */
+			
+			var newPosition = {y: ball.y + ball.accY, x: ball.x + ball.accX, width: ball.width, height: ball.height};
+			
+			if ( ball.x + ball.accX + ball.width >= padRight.x && padRight.intersects(newPosition)) {
+				/* Right pad hit */
+				var coeffY = (((padRight.y + padRight.height/2) - (newPosition.y + ball.height/2)) / (padRight.height/2))*(Math.PI/4);
+				ball.x = padRight.x - ball.width;
+				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
+				ball.accX = -1*Math.cos(coeffY)*ball.accMax;
+				if( ball.accMax < ball_defaults.accCeil ) {
+					ball.accMax += 0.1;
+					s.update(ball.accMax);
+				}
+				pong.hits ++;
+				pong.scoreHit(coeffY);
+				(new NPongSparkle({x: ball.x + ball.width, y: ball.y, style: pickup_style})).addTo(gameScene);
+			} else if(ball.x > padRight.x) {
+				/* Right pad missed */
+				e.preventDefault();
+				n.play(loseScene);
+				pick_spawner.disableAll().clear();
+				return;
+			} else if( ball.x + ball.accX <= padLeft.x + padLeft.width && padLeft.intersects(newPosition) ) {
+				/* Left pad hit */
+				var coeffY = (((padLeft.y + padLeft.height/2) - (newPosition.y + ball.height/2)) / (padLeft.height/2))*(Math.PI/4);
+				ball.x = padLeft.x + padLeft.width;
+				ball.accY = -1*Math.sin(coeffY)*ball.accMax;
+				ball.accX = Math.cos(coeffY)*ball.accMax;
+				
+				if( ball.accMax < ball_defaults.accCeil ) {
+					ball.accMax += 0.1;
+					s.update(ball.accMax);
+				}
+				pong.hits ++;
+				pong.scoreHit(coeffY);
+				(new NPongSparkle({x: ball.x, y: ball.y, style: pickup_style, type: NPongSparkle.RIGHT})).addTo(gameScene);
+			} else if(ball.x + ball.width < padLeft.x + padLeft.width ) {
+				/* Left pad missed */
+				e.preventDefault();
+				n.play(loseScene);
+				pick_spawner.disableAll().clear();
+				return;
+			} else {
+				ball.x += ball.accX;
+			}
+			
+			if ( ball.y + ball.height + ball.accY > e.canvas.height ) {
+				ball.y -= ball.accY - (e.canvas.height - ball.y - ball.height)
+				ball.accY *= -1
+			} else if(ball.y + ball.accY < 0) {
+				ball.y -= ball.y + ball.accY;
+				ball.accY *= -1;
+			} else {
+				ball.y += ball.accY;
+			}
+			
+			updateBoard();
+		});
+		
+		/* Pong Event Listeners */
+		
+		/* DOM Event Listeners */
+		
+		n.node.canvas.onmouseup = function() {
+			if ( n.scene.name == 'start') {
+				status.visible = false;
+				board.visible = true;
+				pong.reset();
+				boardScore = 0;
+				updateBoard();
+				ball.visible = padLeft.visible = padRight.visible = separator.visible = true;
+				n.play(gameScene);
+				s.reset().showStats();
+			}
+		}
+		
+		n.node.canvas.onmousedown = function() {
+			if ( n.scene.name == 'game') {
+				if ( n.is_playing ) {
+					n.stop().clear();
+					
+					for( index in n.scene.children ) {
+						if (n.scene.children[index] && n.scene.children[index] != ball && n.scene.children[index].visible) {
+							n.node.save();
+							n.scene.children[index].draw(n.node);
+							n.node.restore();
+						}
+					}
+					
+					n.node.save();
+					(new NRect({width:n.width,height:n.height,style: new NStyle({color:'#000',opacity: 0.7})})).draw(n.node);
+					pauseText.draw(n.node);
+					n.node.restore();
+				} else {
+					n.play();
+				}
+			}
+		}
+		
+		n.node.canvas.onmousemove = function(e) {
+			padRight.ny = e.clientY - e.target.offsetTop - padRight.height/2
+		}
+		
+		n.play(startScene);
+	}
+	</script>
+</head>
+<body onload="init();"><h1>PONG</h1><canvas id="area" width="400" height="300">You are so not 2011!</canvas><canvas id="board" width="400" height="40">By Siyan Panayotov</canvas></body>
+</html>
